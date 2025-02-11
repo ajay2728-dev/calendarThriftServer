@@ -1,6 +1,6 @@
 package com.example.calendarThriftServer;
 
-import com.example.calendarThriftServer.employeeThrift.EmployeeService;
+import com.example.calendarThriftServer.employeeThrift.IEmployeeService;
 import com.example.calendarThriftServer.service.TempService;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -21,9 +21,10 @@ public class CalendarThriftServerApplication {
 	public static void startServer(TempService tempService) throws TTransportException {
 		try{
 			TServerTransport serverTransport = new TServerSocket(9090);
-			EmployeeService.Processor<EmployeeService.Iface> processor = new EmployeeService.Processor<>(tempService);
+			IEmployeeService.Processor<IEmployeeService.Iface> processor = new IEmployeeService.Processor<>(tempService);
 			TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
-			log.info("server starting...");
+			log.info("server running at port no. 8080");
+			log.info("thrift server running at port no. 9090");
 			server.serve();
 		}catch (TTransportException e){
 			e.printStackTrace();
