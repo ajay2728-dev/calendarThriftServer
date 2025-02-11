@@ -23,7 +23,7 @@ public class CalendarThriftServerApplication {
 			TServerTransport serverTransport = new TServerSocket(9090);
 			IEmployeeService.Processor<IEmployeeService.Iface> processor = new IEmployeeService.Processor<>(tempService);
 			TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
-			log.info("server running at port no. 8080");
+			log.info("server running at port no. 8090");
 			log.info("thrift server running at port no. 9090");
 			server.serve();
 		}catch (TTransportException e){
