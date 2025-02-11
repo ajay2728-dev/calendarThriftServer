@@ -2,8 +2,7 @@ package com.example.calendarThriftServer;
 
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
-import com.example.employee.IEmployee;
-import com.example.employee.IEmployeeService;
+import com.example.employee.*;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.MissingFormatArgumentException;
 
 @Service
 public class MeetingHandler implements IEmployeeService.Iface {
@@ -23,11 +23,24 @@ public class MeetingHandler implements IEmployeeService.Iface {
     @Override
     public IEmployee addEmployee(IEmployee emp) throws TException {
         log.info("add employee thrift server");
-        String req_email=emp.getEmployeeEmail();
-//        if(req_email==null){
-//            return ex
-//        }
-        int generateEmployeeId=1;
+
+        // checking missing input field
+        if(emp.getEmployeeName()==null || emp.getEmployeeEmail()==null || emp.getDepartment()==null || emp.getOfficeLocation()==null || emp.getSalary()==0){
+            throw new EmployeeMissingInputException("Missing Required Input");
+        }
+
+        // checking valid employee email format
+        if(!emp.getEmployeeEmail().matches("^[A-Za-z0-9._%+-]+@xyz\\.com$")){
+            throw new EmployeeInvalidInputException("Invalid Email Format");
+        }
+
+        // check unique email
+        if(employeeRepo.findByEmployeeEmail(emp.getEmployeeEmail())!=null){
+            throw new NonUniqueEmployeeEmailException("Provide Different Employee Email");
+        }
+
+        int generateEmployeeId=(int) (employeeRepo.count() + 1);
+
         EmployeeModel employee = new EmployeeModel(
                 generateEmployeeId,
                 emp.getEmployeeName(),
