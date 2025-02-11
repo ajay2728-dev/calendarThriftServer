@@ -70,7 +70,14 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-<!--		thrift idl package here-->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!--		thrift idl package here-->
 		<dependency>
 			<groupId>com.example</groupId>
 			<artifactId>thrift-common</artifactId>

@@ -1,7 +1,6 @@
 package com.example.calendarThriftServer;
 
-import com.example.calendarThriftServer.employeeThrift.IEmployeeService;
-import com.example.calendarThriftServer.service.TempService;
+import com.example.employee.IEmployeeService;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;
@@ -18,10 +17,10 @@ public class CalendarThriftServerApplication {
 
 	private static final Logger log = LoggerFactory.getLogger(CalendarThriftServerApplication.class);
 
-	public static void startServer(TempService tempService) throws TTransportException {
+	public static void startServer(MeetingHandler meetingHandler) throws TTransportException {
 		try{
 			TServerTransport serverTransport = new TServerSocket(9090);
-			IEmployeeService.Processor<IEmployeeService.Iface> processor = new IEmployeeService.Processor<>(tempService);
+			IEmployeeService.Processor<IEmployeeService.Iface> processor = new IEmployeeService.Processor<>(meetingHandler);
 			TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
 			log.info("server running at port no. 8090");
 			log.info("thrift server running at port no. 9090");
@@ -33,7 +32,7 @@ public class CalendarThriftServerApplication {
 
 	public static void main(String[] args) throws TTransportException {
 		ApplicationContext applicationContext= SpringApplication.run(CalendarThriftServerApplication.class, args);
-		startServer(applicationContext.getBean(TempService.class));
+		startServer(applicationContext.getBean(MeetingHandler.class));
 	}
 
 }
