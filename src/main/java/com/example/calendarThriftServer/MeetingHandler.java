@@ -35,7 +35,8 @@ public class MeetingHandler implements IEmployeeService.Iface {
         }
 
         // check unique email
-        if(employeeRepo.findByEmployeeEmail(emp.getEmployeeEmail())!=null){
+        String emp_email=emp.getEmployeeEmail();
+        if(employeeRepo.findByEmployeeEmail(emp_email).isPresent()){
             throw new NonUniqueEmployeeEmailException("Provide Different Employee Email");
         }
 
