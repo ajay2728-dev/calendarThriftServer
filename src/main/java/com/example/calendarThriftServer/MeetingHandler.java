@@ -8,10 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
+import java.util.Optional;
 
 @Service
 public class MeetingHandler implements IEmployeeService.Iface {
@@ -70,8 +72,26 @@ public class MeetingHandler implements IEmployeeService.Iface {
     }
 
     @Override
-    public IEmployee getEmployeeById(int id) throws TException {
-        return null;
+    public IEmployee getEmployeeById(int employeeId)  {
+
+        // search for employee by id
+        Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
+
+        // check employee is present
+//        if(!employeeOpt.isPresent()){
+//            throw
+//        }
+        EmployeeModel employee = employeeOpt.get();
+        IEmployee returnEmployee = new IEmployee(employee.getEmployeeId(),
+                employee.getEmployeeName(),
+                employee.getEmployeeEmail(),
+                employee.getOfficeLocation(),
+                employee.getDepartment(),
+                employee.getSalary(),
+                employee.getActive() );
+
+        // return the employee
+        return returnEmployee;
     }
 
     @Override

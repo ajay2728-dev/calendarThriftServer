@@ -7,7 +7,6 @@ import com.example.employee.EmployeeMissingInputException;
 import com.example.employee.IEmployee;
 import com.example.employee.NonUniqueEmployeeEmailException;
 import org.apache.thrift.TException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,7 +59,7 @@ public class MeetingHandlerTest {
     @Test
     public void test_whenAddEmployee_givenValidEmployee_AddEmployeeSuccess() throws TException {
 
-        Mockito.when(employeeRepo.findByEmployeeEmail(Mockito.anyString())).thenReturn(null);
+        Mockito.when(employeeRepo.findByEmployeeEmail(Mockito.anyString())).thenReturn(Optional.empty());
         Mockito.when(employeeRepo.save(Mockito.any(EmployeeModel.class))).thenReturn(savedEmployee);
 
         IEmployee result= meetingHandler.addEmployee(inputEmployee);
@@ -72,7 +71,7 @@ public class MeetingHandlerTest {
     }
 
     @Test
-    public void test_whenAddEmployee_givenMissingInput_AddEmployeeFail(){
+    public void test_whenAddEmployee_givenMissingInput_ThrowEmployeeMissingInputException(){
          EmployeeMissingInputException thrownException = assertThrows(EmployeeMissingInputException.class,()->{
             meetingHandler.addEmployee(missingInputEmployee);
         }
@@ -81,7 +80,7 @@ public class MeetingHandlerTest {
     }
 
     @Test
-    public void test_whenAddEmployee_givenInvalidEmail_AddEmployeeFail() {
+    public void test_whenAddEmployee_givenInvalidEmail_ThrowEmployeeInvalidInputException() {
 
         EmployeeInvalidInputException thrownException = assertThrows(EmployeeInvalidInputException.class,()->{
                     meetingHandler.addEmployee(invalidEmailEmployee);
@@ -92,7 +91,7 @@ public class MeetingHandlerTest {
     }
 
     @Test
-    public void test_whenAddEmployee_givenNonUniqueEmployeeEmail_AddEmployeeFail() {
+    public void test_whenAddEmployee_givenNonUniqueEmployeeEmail_ThrowNonUniqueEmployeeEmailException() {
 
         Mockito.when(employeeRepo.findByEmployeeEmail("john.doe@xyz.com")).thenReturn(Optional.of(new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
                 "New York", "Engineering", true, 50000)));
@@ -103,6 +102,19 @@ public class MeetingHandlerTest {
         );
         assertEquals("Provide Different Employee Email",thrownException.getMessage());
 
+    }
+
+    @Test
+    public void test_WhenGetEmployeeById_givenValidId_GetEmployeeSuccess() {
+
+        Mockito.when(employeeRepo.findById(1)).thenReturn(Optional.of(new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
+                "New York", "Engineering", true, 50000)));
+
+        IEmployee result = meetingHandler.getEmployeeById(1);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmployeeId()).isEqualTo(1);
+        assertThat(result.getEmployeeEmail()).isEqualTo("john.doe@xyz.com");
     }
 
 }

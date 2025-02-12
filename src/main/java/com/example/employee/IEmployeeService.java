@@ -16,7 +16,7 @@ public class IEmployeeService {
 
     public java.util.List<IEmployee> getAllEmployees() throws org.apache.thrift.TException;
 
-    public IEmployee getEmployeeById(int id) throws org.apache.thrift.TException;
+    public IEmployee getEmployeeById(int id) throws Exception;
 
     public boolean deleteEmployeeById(int id) throws org.apache.thrift.TException;
 
@@ -438,8 +438,12 @@ public class IEmployeeService {
       @Override
       public getEmployeeById_result getResult(I iface, getEmployeeById_args args) throws org.apache.thrift.TException {
         getEmployeeById_result result = getEmptyResultInstance();
-        result.success = iface.getEmployeeById(args.id);
-        return result;
+          try {
+              result.success = iface.getEmployeeById(args.id);
+          } catch (Exception e) {
+              throw new RuntimeException(e);
+          }
+          return result;
       }
     }
 
