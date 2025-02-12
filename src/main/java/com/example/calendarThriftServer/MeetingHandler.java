@@ -72,17 +72,20 @@ public class MeetingHandler implements IEmployeeService.Iface {
     }
 
     @Override
-    public IEmployee getEmployeeById(int employeeId)  {
+    public IEmployee getEmployeeById(int employeeId) throws NotFoundEmployeeException {
 
         // search for employee by id
         Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
 
         // check employee is present
-//        if(!employeeOpt.isPresent()){
-//            throw
-//        }
+        if(!employeeOpt.isPresent()){
+            throw new NotFoundEmployeeException("Employee Not Found");
+        }
+
         EmployeeModel employee = employeeOpt.get();
-        IEmployee returnEmployee = new IEmployee(employee.getEmployeeId(),
+
+        // return the employee
+        return new IEmployee(employee.getEmployeeId(),
                 employee.getEmployeeName(),
                 employee.getEmployeeEmail(),
                 employee.getOfficeLocation(),
@@ -90,8 +93,6 @@ public class MeetingHandler implements IEmployeeService.Iface {
                 employee.getSalary(),
                 employee.getActive() );
 
-        // return the employee
-        return returnEmployee;
     }
 
     @Override

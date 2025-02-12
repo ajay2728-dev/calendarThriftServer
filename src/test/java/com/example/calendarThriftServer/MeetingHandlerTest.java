@@ -2,10 +2,7 @@ package com.example.calendarThriftServer;
 
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
-import com.example.employee.EmployeeInvalidInputException;
-import com.example.employee.EmployeeMissingInputException;
-import com.example.employee.IEmployee;
-import com.example.employee.NonUniqueEmployeeEmailException;
+import com.example.employee.*;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,7 +102,7 @@ public class MeetingHandlerTest {
     }
 
     @Test
-    public void test_WhenGetEmployeeById_givenValidId_GetEmployeeSuccess() {
+    public void test_WhenGetEmployeeById_givenValidId_GetEmployeeSuccess() throws NotFoundEmployeeException {
 
         Mockito.when(employeeRepo.findById(1)).thenReturn(Optional.of(new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
                 "New York", "Engineering", true, 50000)));
@@ -115,6 +112,19 @@ public class MeetingHandlerTest {
         assertThat(result).isNotNull();
         assertThat(result.getEmployeeId()).isEqualTo(1);
         assertThat(result.getEmployeeEmail()).isEqualTo("john.doe@xyz.com");
+    }
+
+    @Test
+    public void test_WhenGetEmployeeById_givenValidId_ThrowNotFoundEmployeeException(){
+
+        Mockito.when(employeeRepo.findById(100)).thenReturn(Optional.empty());
+
+        NotFoundEmployeeException thrownException = assertThrows(NotFoundEmployeeException.class,()->{
+            meetingHandler.getEmployeeById(100);
+        });
+
+        assertEquals("Employee Not Found",thrownException.getMessage());
+
     }
 
 }
