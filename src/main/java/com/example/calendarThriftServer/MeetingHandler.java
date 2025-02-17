@@ -11,6 +11,6 @@ public class MeetingHandler implements IMeetingService.Iface {
 
     @Override
     public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws TException {
-        return false;
+        return true;
     }
 }

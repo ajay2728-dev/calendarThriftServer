@@ -1,8 +1,6 @@
 package com.example.calendarThriftServer;
 
-import com.example.calendarThriftServer.model.EmployeeModel;
-import com.example.calendarThriftServer.repository.EmployeeRepo;
-import com.example.employee.*;
+
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,10 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-
 import java.util.Optional;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,108 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 public class MeetingHandlerTest {
 
-    private EmployeeModel employee;
-    private EmployeeModel savedEmployee;
-    private IEmployee inputEmployee;
-    private IEmployee missingInputEmployee;
-    private IEmployee invalidEmailEmployee;
 
-    @Mock
-    EmployeeRepo employeeRepo;
-
-    @InjectMocks
-    MeetingHandler meetingHandler;
 
     @BeforeEach
     void setup(){
 
-        inputEmployee = new IEmployee(1, "John Doe", "john.doe@xyz.com",
-                "New York", "Engineering", 50000, true);
-
-        savedEmployee = new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
-                "New York", "Engineering", true, 50000);
-
-        missingInputEmployee = new IEmployee(1, "John Doe", null,
-                "New York", "Engineering", 50000, true);
-
-        invalidEmailEmployee = new IEmployee(1, "John Doe", "john.doe.com",
-                "New York", "Engineering", 50000, true);
 
 
     }
 
-    @Test
-    public void test_whenAddEmployee_givenValidEmployee_AddEmployeeSuccess() throws TException {
-
-        Mockito.when(employeeRepo.findByEmployeeEmail(Mockito.anyString())).thenReturn(Optional.empty());
-        Mockito.when(employeeRepo.save(Mockito.any(EmployeeModel.class))).thenReturn(savedEmployee);
-
-        IEmployee result= meetingHandler.addEmployee(inputEmployee);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getEmployeeId()).isEqualTo(1);
-        assertThat(result.getEmployeeName()).isEqualTo("John Doe");
-        assertThat(result.getEmployeeEmail()).isEqualTo("john.doe@xyz.com");
-    }
-
-    @Test
-    public void test_whenAddEmployee_givenMissingInput_ThrowEmployeeMissingInputException(){
-         EmployeeMissingInputException thrownException = assertThrows(EmployeeMissingInputException.class,()->{
-            meetingHandler.addEmployee(missingInputEmployee);
-        }
-        );
-        assertEquals("Missing Required Input",thrownException.getMessage());
-    }
-
-    @Test
-    public void test_whenAddEmployee_givenInvalidEmail_ThrowEmployeeInvalidInputException() {
-
-        EmployeeInvalidInputException thrownException = assertThrows(EmployeeInvalidInputException.class,()->{
-                    meetingHandler.addEmployee(invalidEmailEmployee);
-                }
-        );
-        assertEquals("Invalid Email Format",thrownException.getMessage());
-
-    }
-
-    @Test
-    public void test_whenAddEmployee_givenNonUniqueEmployeeEmail_ThrowNonUniqueEmployeeEmailException() {
-
-        Mockito.when(employeeRepo.findByEmployeeEmail("john.doe@xyz.com")).thenReturn(Optional.of(new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
-                "New York", "Engineering", true, 50000)));
-
-        NonUniqueEmployeeEmailException thrownException = assertThrows(NonUniqueEmployeeEmailException.class,()->{
-                    meetingHandler.addEmployee(inputEmployee);
-                }
-        );
-        assertEquals("Provide Different Employee Email",thrownException.getMessage());
-
-    }
-
-    @Test
-    public void test_WhenGetEmployeeById_givenValidId_GetEmployeeSuccess() throws NotFoundEmployeeException {
-
-        Mockito.when(employeeRepo.findById(1)).thenReturn(Optional.of(new EmployeeModel(1, "John Doe", "john.doe@xyz.com",
-                "New York", "Engineering", true, 50000)));
-
-        IEmployee result = meetingHandler.getEmployeeById(1);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getEmployeeId()).isEqualTo(1);
-        assertThat(result.getEmployeeEmail()).isEqualTo("john.doe@xyz.com");
-    }
-
-    @Test
-    public void test_WhenGetEmployeeById_givenValidId_ThrowNotFoundEmployeeException(){
-
-        Mockito.when(employeeRepo.findById(100)).thenReturn(Optional.empty());
-
-        NotFoundEmployeeException thrownException = assertThrows(NotFoundEmployeeException.class,()->{
-            meetingHandler.getEmployeeById(100);
-        });
-
-        assertEquals("Employee Not Found",thrownException.getMessage());
-
-    }
 
 }

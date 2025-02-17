@@ -12,7 +12,7 @@ public class IMeetingService {
 
   public interface Iface {
 
-    public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws org.apache.thrift.TException;
+    public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws MissingFieldException, InvalidFieldException, NonUniqueFieldException, NotFoundException, ConstraintViolationException, org.apache.thrift.TException;
 
   }
 
@@ -45,7 +45,7 @@ public class IMeetingService {
     }
 
     @Override
-    public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws org.apache.thrift.TException
+    public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws MissingFieldException, InvalidFieldException, NonUniqueFieldException, NotFoundException, ConstraintViolationException, org.apache.thrift.TException
     {
       send_canScheduleMeeting(meetingDTO);
       return recv_canScheduleMeeting();
@@ -58,12 +58,27 @@ public class IMeetingService {
       sendBase("canScheduleMeeting", args);
     }
 
-    public boolean recv_canScheduleMeeting() throws org.apache.thrift.TException
+    public boolean recv_canScheduleMeeting() throws MissingFieldException, InvalidFieldException, NonUniqueFieldException, NotFoundException, ConstraintViolationException, org.apache.thrift.TException
     {
       canScheduleMeeting_result result = new canScheduleMeeting_result();
       receiveBase(result, "canScheduleMeeting");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.ex != null) {
+        throw result.ex;
+      }
+      if (result.invalidEx != null) {
+        throw result.invalidEx;
+      }
+      if (result.uniqueEx != null) {
+        throw result.uniqueEx;
+      }
+      if (result.notFoundEx != null) {
+        throw result.notFoundEx;
+      }
+      if (result.constraintEx != null) {
+        throw result.constraintEx;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "canScheduleMeeting failed: unknown result");
     }
@@ -112,7 +127,7 @@ public class IMeetingService {
       }
 
       @Override
-      public java.lang.Boolean getResult() throws org.apache.thrift.TException {
+      public java.lang.Boolean getResult() throws MissingFieldException, InvalidFieldException, NonUniqueFieldException, NotFoundException, ConstraintViolationException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new java.lang.IllegalStateException("Method call not finished!");
         }
@@ -167,8 +182,20 @@ public class IMeetingService {
       @Override
       public canScheduleMeeting_result getResult(I iface, canScheduleMeeting_args args) throws org.apache.thrift.TException {
         canScheduleMeeting_result result = getEmptyResultInstance();
-        result.success = iface.canScheduleMeeting(args.meetingDTO);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.canScheduleMeeting(args.meetingDTO);
+          result.setSuccessIsSet(true);
+        } catch (MissingFieldException ex) {
+          result.ex = ex;
+        } catch (InvalidFieldException invalidEx) {
+          result.invalidEx = invalidEx;
+        } catch (NonUniqueFieldException uniqueEx) {
+          result.uniqueEx = uniqueEx;
+        } catch (NotFoundException notFoundEx) {
+          result.notFoundEx = notFoundEx;
+        } catch (ConstraintViolationException constraintEx) {
+          result.constraintEx = constraintEx;
+        }
         return result;
       }
     }
@@ -229,7 +256,27 @@ public class IMeetingService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TSerializable msg;
             canScheduleMeeting_result result = new canScheduleMeeting_result();
-            if (e instanceof org.apache.thrift.transport.TTransportException) {
+            if (e instanceof MissingFieldException) {
+              result.ex = (MissingFieldException) e;
+              result.setExIsSet(true);
+              msg = result;
+            } else if (e instanceof InvalidFieldException) {
+              result.invalidEx = (InvalidFieldException) e;
+              result.setInvalidExIsSet(true);
+              msg = result;
+            } else if (e instanceof NonUniqueFieldException) {
+              result.uniqueEx = (NonUniqueFieldException) e;
+              result.setUniqueExIsSet(true);
+              msg = result;
+            } else if (e instanceof NotFoundException) {
+              result.notFoundEx = (NotFoundException) e;
+              result.setNotFoundExIsSet(true);
+              msg = result;
+            } else if (e instanceof ConstraintViolationException) {
+              result.constraintEx = (ConstraintViolationException) e;
+              result.setConstraintExIsSet(true);
+              msg = result;
+            } else if (e instanceof org.apache.thrift.transport.TTransportException) {
               _LOGGER.error("TTransportException inside handler", e);
               fb.close();
               return;
@@ -654,15 +701,30 @@ public class IMeetingService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("canScheduleMeeting_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField INVALID_EX_FIELD_DESC = new org.apache.thrift.protocol.TField("invalidEx", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField UNIQUE_EX_FIELD_DESC = new org.apache.thrift.protocol.TField("uniqueEx", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField NOT_FOUND_EX_FIELD_DESC = new org.apache.thrift.protocol.TField("notFoundEx", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField CONSTRAINT_EX_FIELD_DESC = new org.apache.thrift.protocol.TField("constraintEx", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new canScheduleMeeting_resultStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new canScheduleMeeting_resultTupleSchemeFactory();
 
     public boolean success; // required
+    public @org.apache.thrift.annotation.Nullable MissingFieldException ex; // required
+    public @org.apache.thrift.annotation.Nullable InvalidFieldException invalidEx; // required
+    public @org.apache.thrift.annotation.Nullable NonUniqueFieldException uniqueEx; // required
+    public @org.apache.thrift.annotation.Nullable NotFoundException notFoundEx; // required
+    public @org.apache.thrift.annotation.Nullable ConstraintViolationException constraintEx; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      EX((short)1, "ex"),
+      INVALID_EX((short)2, "invalidEx"),
+      UNIQUE_EX((short)3, "uniqueEx"),
+      NOT_FOUND_EX((short)4, "notFoundEx"),
+      CONSTRAINT_EX((short)5, "constraintEx");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -680,6 +742,16 @@ public class IMeetingService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // EX
+            return EX;
+          case 2: // INVALID_EX
+            return INVALID_EX;
+          case 3: // UNIQUE_EX
+            return UNIQUE_EX;
+          case 4: // NOT_FOUND_EX
+            return NOT_FOUND_EX;
+          case 5: // CONSTRAINT_EX
+            return CONSTRAINT_EX;
           default:
             return null;
         }
@@ -730,6 +802,16 @@ public class IMeetingService {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.EX, new org.apache.thrift.meta_data.FieldMetaData("ex", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MissingFieldException.class)));
+      tmpMap.put(_Fields.INVALID_EX, new org.apache.thrift.meta_data.FieldMetaData("invalidEx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, InvalidFieldException.class)));
+      tmpMap.put(_Fields.UNIQUE_EX, new org.apache.thrift.meta_data.FieldMetaData("uniqueEx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NonUniqueFieldException.class)));
+      tmpMap.put(_Fields.NOT_FOUND_EX, new org.apache.thrift.meta_data.FieldMetaData("notFoundEx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NotFoundException.class)));
+      tmpMap.put(_Fields.CONSTRAINT_EX, new org.apache.thrift.meta_data.FieldMetaData("constraintEx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ConstraintViolationException.class)));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(canScheduleMeeting_result.class, metaDataMap);
     }
@@ -738,11 +820,21 @@ public class IMeetingService {
     }
 
     public canScheduleMeeting_result(
-      boolean success)
+      boolean success,
+      MissingFieldException ex,
+      InvalidFieldException invalidEx,
+      NonUniqueFieldException uniqueEx,
+      NotFoundException notFoundEx,
+      ConstraintViolationException constraintEx)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.ex = ex;
+      this.invalidEx = invalidEx;
+      this.uniqueEx = uniqueEx;
+      this.notFoundEx = notFoundEx;
+      this.constraintEx = constraintEx;
     }
 
     /**
@@ -751,6 +843,21 @@ public class IMeetingService {
     public canScheduleMeeting_result(canScheduleMeeting_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEx()) {
+        this.ex = new MissingFieldException(other.ex);
+      }
+      if (other.isSetInvalidEx()) {
+        this.invalidEx = new InvalidFieldException(other.invalidEx);
+      }
+      if (other.isSetUniqueEx()) {
+        this.uniqueEx = new NonUniqueFieldException(other.uniqueEx);
+      }
+      if (other.isSetNotFoundEx()) {
+        this.notFoundEx = new NotFoundException(other.notFoundEx);
+      }
+      if (other.isSetConstraintEx()) {
+        this.constraintEx = new ConstraintViolationException(other.constraintEx);
+      }
     }
 
     @Override
@@ -762,6 +869,11 @@ public class IMeetingService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.ex = null;
+      this.invalidEx = null;
+      this.uniqueEx = null;
+      this.notFoundEx = null;
+      this.constraintEx = null;
     }
 
     public boolean isSuccess() {
@@ -787,6 +899,131 @@ public class IMeetingService {
       __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    @org.apache.thrift.annotation.Nullable
+    public MissingFieldException getEx() {
+      return this.ex;
+    }
+
+    public canScheduleMeeting_result setEx(@org.apache.thrift.annotation.Nullable MissingFieldException ex) {
+      this.ex = ex;
+      return this;
+    }
+
+    public void unsetEx() {
+      this.ex = null;
+    }
+
+    /** Returns true if field ex is set (has been assigned a value) and false otherwise */
+    public boolean isSetEx() {
+      return this.ex != null;
+    }
+
+    public void setExIsSet(boolean value) {
+      if (!value) {
+        this.ex = null;
+      }
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public InvalidFieldException getInvalidEx() {
+      return this.invalidEx;
+    }
+
+    public canScheduleMeeting_result setInvalidEx(@org.apache.thrift.annotation.Nullable InvalidFieldException invalidEx) {
+      this.invalidEx = invalidEx;
+      return this;
+    }
+
+    public void unsetInvalidEx() {
+      this.invalidEx = null;
+    }
+
+    /** Returns true if field invalidEx is set (has been assigned a value) and false otherwise */
+    public boolean isSetInvalidEx() {
+      return this.invalidEx != null;
+    }
+
+    public void setInvalidExIsSet(boolean value) {
+      if (!value) {
+        this.invalidEx = null;
+      }
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public NonUniqueFieldException getUniqueEx() {
+      return this.uniqueEx;
+    }
+
+    public canScheduleMeeting_result setUniqueEx(@org.apache.thrift.annotation.Nullable NonUniqueFieldException uniqueEx) {
+      this.uniqueEx = uniqueEx;
+      return this;
+    }
+
+    public void unsetUniqueEx() {
+      this.uniqueEx = null;
+    }
+
+    /** Returns true if field uniqueEx is set (has been assigned a value) and false otherwise */
+    public boolean isSetUniqueEx() {
+      return this.uniqueEx != null;
+    }
+
+    public void setUniqueExIsSet(boolean value) {
+      if (!value) {
+        this.uniqueEx = null;
+      }
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public NotFoundException getNotFoundEx() {
+      return this.notFoundEx;
+    }
+
+    public canScheduleMeeting_result setNotFoundEx(@org.apache.thrift.annotation.Nullable NotFoundException notFoundEx) {
+      this.notFoundEx = notFoundEx;
+      return this;
+    }
+
+    public void unsetNotFoundEx() {
+      this.notFoundEx = null;
+    }
+
+    /** Returns true if field notFoundEx is set (has been assigned a value) and false otherwise */
+    public boolean isSetNotFoundEx() {
+      return this.notFoundEx != null;
+    }
+
+    public void setNotFoundExIsSet(boolean value) {
+      if (!value) {
+        this.notFoundEx = null;
+      }
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public ConstraintViolationException getConstraintEx() {
+      return this.constraintEx;
+    }
+
+    public canScheduleMeeting_result setConstraintEx(@org.apache.thrift.annotation.Nullable ConstraintViolationException constraintEx) {
+      this.constraintEx = constraintEx;
+      return this;
+    }
+
+    public void unsetConstraintEx() {
+      this.constraintEx = null;
+    }
+
+    /** Returns true if field constraintEx is set (has been assigned a value) and false otherwise */
+    public boolean isSetConstraintEx() {
+      return this.constraintEx != null;
+    }
+
+    public void setConstraintExIsSet(boolean value) {
+      if (!value) {
+        this.constraintEx = null;
+      }
+    }
+
     @Override
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
@@ -795,6 +1032,46 @@ public class IMeetingService {
           unsetSuccess();
         } else {
           setSuccess((java.lang.Boolean)value);
+        }
+        break;
+
+      case EX:
+        if (value == null) {
+          unsetEx();
+        } else {
+          setEx((MissingFieldException)value);
+        }
+        break;
+
+      case INVALID_EX:
+        if (value == null) {
+          unsetInvalidEx();
+        } else {
+          setInvalidEx((InvalidFieldException)value);
+        }
+        break;
+
+      case UNIQUE_EX:
+        if (value == null) {
+          unsetUniqueEx();
+        } else {
+          setUniqueEx((NonUniqueFieldException)value);
+        }
+        break;
+
+      case NOT_FOUND_EX:
+        if (value == null) {
+          unsetNotFoundEx();
+        } else {
+          setNotFoundEx((NotFoundException)value);
+        }
+        break;
+
+      case CONSTRAINT_EX:
+        if (value == null) {
+          unsetConstraintEx();
+        } else {
+          setConstraintEx((ConstraintViolationException)value);
         }
         break;
 
@@ -807,6 +1084,21 @@ public class IMeetingService {
       switch (field) {
       case SUCCESS:
         return isSuccess();
+
+      case EX:
+        return getEx();
+
+      case INVALID_EX:
+        return getInvalidEx();
+
+      case UNIQUE_EX:
+        return getUniqueEx();
+
+      case NOT_FOUND_EX:
+        return getNotFoundEx();
+
+      case CONSTRAINT_EX:
+        return getConstraintEx();
 
       }
       throw new java.lang.IllegalStateException();
@@ -822,6 +1114,16 @@ public class IMeetingService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case EX:
+        return isSetEx();
+      case INVALID_EX:
+        return isSetInvalidEx();
+      case UNIQUE_EX:
+        return isSetUniqueEx();
+      case NOT_FOUND_EX:
+        return isSetNotFoundEx();
+      case CONSTRAINT_EX:
+        return isSetConstraintEx();
       }
       throw new java.lang.IllegalStateException();
     }
@@ -848,6 +1150,51 @@ public class IMeetingService {
           return false;
       }
 
+      boolean this_present_ex = true && this.isSetEx();
+      boolean that_present_ex = true && that.isSetEx();
+      if (this_present_ex || that_present_ex) {
+        if (!(this_present_ex && that_present_ex))
+          return false;
+        if (!this.ex.equals(that.ex))
+          return false;
+      }
+
+      boolean this_present_invalidEx = true && this.isSetInvalidEx();
+      boolean that_present_invalidEx = true && that.isSetInvalidEx();
+      if (this_present_invalidEx || that_present_invalidEx) {
+        if (!(this_present_invalidEx && that_present_invalidEx))
+          return false;
+        if (!this.invalidEx.equals(that.invalidEx))
+          return false;
+      }
+
+      boolean this_present_uniqueEx = true && this.isSetUniqueEx();
+      boolean that_present_uniqueEx = true && that.isSetUniqueEx();
+      if (this_present_uniqueEx || that_present_uniqueEx) {
+        if (!(this_present_uniqueEx && that_present_uniqueEx))
+          return false;
+        if (!this.uniqueEx.equals(that.uniqueEx))
+          return false;
+      }
+
+      boolean this_present_notFoundEx = true && this.isSetNotFoundEx();
+      boolean that_present_notFoundEx = true && that.isSetNotFoundEx();
+      if (this_present_notFoundEx || that_present_notFoundEx) {
+        if (!(this_present_notFoundEx && that_present_notFoundEx))
+          return false;
+        if (!this.notFoundEx.equals(that.notFoundEx))
+          return false;
+      }
+
+      boolean this_present_constraintEx = true && this.isSetConstraintEx();
+      boolean that_present_constraintEx = true && that.isSetConstraintEx();
+      if (this_present_constraintEx || that_present_constraintEx) {
+        if (!(this_present_constraintEx && that_present_constraintEx))
+          return false;
+        if (!this.constraintEx.equals(that.constraintEx))
+          return false;
+      }
+
       return true;
     }
 
@@ -856,6 +1203,26 @@ public class IMeetingService {
       int hashCode = 1;
 
       hashCode = hashCode * 8191 + ((success) ? 131071 : 524287);
+
+      hashCode = hashCode * 8191 + ((isSetEx()) ? 131071 : 524287);
+      if (isSetEx())
+        hashCode = hashCode * 8191 + ex.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetInvalidEx()) ? 131071 : 524287);
+      if (isSetInvalidEx())
+        hashCode = hashCode * 8191 + invalidEx.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetUniqueEx()) ? 131071 : 524287);
+      if (isSetUniqueEx())
+        hashCode = hashCode * 8191 + uniqueEx.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetNotFoundEx()) ? 131071 : 524287);
+      if (isSetNotFoundEx())
+        hashCode = hashCode * 8191 + notFoundEx.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetConstraintEx()) ? 131071 : 524287);
+      if (isSetConstraintEx())
+        hashCode = hashCode * 8191 + constraintEx.hashCode();
 
       return hashCode;
     }
@@ -874,6 +1241,56 @@ public class IMeetingService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.compare(isSetEx(), other.isSetEx());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEx()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ex, other.ex);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.compare(isSetInvalidEx(), other.isSetInvalidEx());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetInvalidEx()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.invalidEx, other.invalidEx);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.compare(isSetUniqueEx(), other.isSetUniqueEx());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUniqueEx()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.uniqueEx, other.uniqueEx);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.compare(isSetNotFoundEx(), other.isSetNotFoundEx());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetNotFoundEx()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.notFoundEx, other.notFoundEx);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.compare(isSetConstraintEx(), other.isSetConstraintEx());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetConstraintEx()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.constraintEx, other.constraintEx);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -903,6 +1320,46 @@ public class IMeetingService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ex:");
+      if (this.ex == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ex);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("invalidEx:");
+      if (this.invalidEx == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.invalidEx);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("uniqueEx:");
+      if (this.uniqueEx == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.uniqueEx);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("notFoundEx:");
+      if (this.notFoundEx == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.notFoundEx);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("constraintEx:");
+      if (this.constraintEx == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.constraintEx);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -959,6 +1416,51 @@ public class IMeetingService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // EX
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ex = new MissingFieldException();
+                struct.ex.read(iprot);
+                struct.setExIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // INVALID_EX
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.invalidEx = new InvalidFieldException();
+                struct.invalidEx.read(iprot);
+                struct.setInvalidExIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // UNIQUE_EX
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.uniqueEx = new NonUniqueFieldException();
+                struct.uniqueEx.read(iprot);
+                struct.setUniqueExIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // NOT_FOUND_EX
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.notFoundEx = new NotFoundException();
+                struct.notFoundEx.read(iprot);
+                struct.setNotFoundExIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // CONSTRAINT_EX
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.constraintEx = new ConstraintViolationException();
+                struct.constraintEx.read(iprot);
+                struct.setConstraintExIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -978,6 +1480,31 @@ public class IMeetingService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ex != null) {
+          oprot.writeFieldBegin(EX_FIELD_DESC);
+          struct.ex.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.invalidEx != null) {
+          oprot.writeFieldBegin(INVALID_EX_FIELD_DESC);
+          struct.invalidEx.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.uniqueEx != null) {
+          oprot.writeFieldBegin(UNIQUE_EX_FIELD_DESC);
+          struct.uniqueEx.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.notFoundEx != null) {
+          oprot.writeFieldBegin(NOT_FOUND_EX_FIELD_DESC);
+          struct.notFoundEx.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.constraintEx != null) {
+          oprot.writeFieldBegin(CONSTRAINT_EX_FIELD_DESC);
+          struct.constraintEx.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1002,19 +1529,74 @@ public class IMeetingService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEx()) {
+          optionals.set(1);
+        }
+        if (struct.isSetInvalidEx()) {
+          optionals.set(2);
+        }
+        if (struct.isSetUniqueEx()) {
+          optionals.set(3);
+        }
+        if (struct.isSetNotFoundEx()) {
+          optionals.set(4);
+        }
+        if (struct.isSetConstraintEx()) {
+          optionals.set(5);
+        }
+        oprot.writeBitSet(optionals, 6);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEx()) {
+          struct.ex.write(oprot);
+        }
+        if (struct.isSetInvalidEx()) {
+          struct.invalidEx.write(oprot);
+        }
+        if (struct.isSetUniqueEx()) {
+          struct.uniqueEx.write(oprot);
+        }
+        if (struct.isSetNotFoundEx()) {
+          struct.notFoundEx.write(oprot);
+        }
+        if (struct.isSetConstraintEx()) {
+          struct.constraintEx.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, canScheduleMeeting_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        java.util.BitSet incoming = iprot.readBitSet(1);
+        java.util.BitSet incoming = iprot.readBitSet(6);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ex = new MissingFieldException();
+          struct.ex.read(iprot);
+          struct.setExIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.invalidEx = new InvalidFieldException();
+          struct.invalidEx.read(iprot);
+          struct.setInvalidExIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.uniqueEx = new NonUniqueFieldException();
+          struct.uniqueEx.read(iprot);
+          struct.setUniqueExIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.notFoundEx = new NotFoundException();
+          struct.notFoundEx.read(iprot);
+          struct.setNotFoundExIsSet(true);
+        }
+        if (incoming.get(5)) {
+          struct.constraintEx = new ConstraintViolationException();
+          struct.constraintEx.read(iprot);
+          struct.setConstraintExIsSet(true);
         }
       }
     }
