@@ -15,10 +15,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service
@@ -76,14 +73,21 @@ public class MeetingHandler implements IMeetingService.Iface {
 
         // Check if all employees are free during the meeting time
         for (int employeeId : meetingDTO.employeeIDs) {
+            Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
+            if(!employeeOpt.isPresent()){
+                throw new TException("Employee with "+ employeeId + "not found");
+            }
+
+            EmployeeModel employee = employeeOpt.get();
+
             Query employeeMeetingQuery = entityManager.createQuery(
                     "SELECT ms FROM MeetingStatusModel ms " +
                             "WHERE ms.meeting.meetingTime BETWEEN :start AND :end " +
-                            "AND :employeeId MEMBER OF ms.employees"
+                            "AND :employee MEMBER OF ms.employees"
             );
             employeeMeetingQuery.setParameter("start", start);
             employeeMeetingQuery.setParameter("end", end);
-            employeeMeetingQuery.setParameter("employeeId", employeeId);
+            employeeMeetingQuery.setParameter("employee", employee);
 
             List<MeetingStatusModel> employeeMeetings = employeeMeetingQuery.getResultList();
             if (!employeeMeetings.isEmpty()) {
