@@ -1,13 +1,12 @@
-package com.example.calendarThriftServer.model;
+package com.example.calendarManagement.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -15,27 +14,52 @@ import javax.persistence.Id;
 @Builder
 @Entity
 public class EmployeeModel {
+
     @Id
     @Column(name = "employeeId")
-    int employeeId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int employeeId;
 
     @Column(name = "employeeName")
-    String employeeName;
+    private String employeeName;
 
     @Column(name = "employeeEmail")
-    String employeeEmail;
+    private String employeeEmail;
 
-    @Column(name =  "officeLocation")
-    String officeLocation;
+    @ManyToOne
+    @JoinColumn(name = "officeId", nullable = false)
+    private OfficeModel office;
 
     @Column(name = "department")
-    String department;
+    private String department;
 
     @Column(name = "salary")
-    int salary;
+    private int salary;
 
     @Column(name = "isActive")
     Boolean isActive;
+
+    @ManyToMany(mappedBy = "employees")
+    private Set<MeetingStatusModel> meetingStatuses;
+
+    public EmployeeModel(int employeeId,String employeeName, String employeeEmail, OfficeModel office, String department, Boolean isActive, int salary) {
+        this.employeeId=employeeId;
+        this.employeeName = employeeName;
+        this.employeeEmail = employeeEmail;
+        this.office = office;
+        this.department = department;
+        this.isActive = isActive;
+        this.salary = salary;
+    }
+
+    public EmployeeModel(String employeeName, String employeeEmail, OfficeModel office, String department, Boolean isActive, int salary) {
+        this.employeeName = employeeName;
+        this.employeeEmail = employeeEmail;
+        this.office = office;
+        this.department = department;
+        this.isActive = isActive;
+        this.salary = salary;
+    }
 
     public int getEmployeeId() {
         return employeeId;
@@ -61,12 +85,12 @@ public class EmployeeModel {
         this.employeeEmail = employeeEmail;
     }
 
-    public String getOfficeLocation() {
-        return officeLocation;
+    public OfficeModel getOffice() {
+        return office;
     }
 
-    public void setOfficeLocation(String officeLocation) {
-        this.officeLocation = officeLocation;
+    public void setOffice(OfficeModel office) {
+        this.office = office;
     }
 
     public String getDepartment() {
@@ -93,14 +117,11 @@ public class EmployeeModel {
         isActive = active;
     }
 
-    public EmployeeModel(int employeeId, String employeeName, String employeeEmail, String officeLocation, String department, Boolean isActive, int salary) {
-        this.employeeId = employeeId;
-        this.employeeName = employeeName;
-        this.employeeEmail = employeeEmail;
-        this.officeLocation = officeLocation;
-        this.department = department;
-        this.isActive = isActive;
-        this.salary = salary;
+    public Set<MeetingStatusModel> getMeetingStatuses() {
+        return meetingStatuses;
     }
 
+    public void setMeetingStatuses(Set<MeetingStatusModel> meetingStatuses) {
+        this.meetingStatuses = meetingStatuses;
+    }
 }
