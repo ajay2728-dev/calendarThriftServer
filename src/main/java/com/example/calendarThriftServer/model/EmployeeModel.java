@@ -1,4 +1,4 @@
-package com.example.calendarManagement.model;
+package com.example.calendarThriftServer.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

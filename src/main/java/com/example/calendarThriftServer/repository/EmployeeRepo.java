@@ -1,6 +1,6 @@
-package com.example.calendarManagement.repository;
+package com.example.calendarThriftServer.repository;
 
-import com.example.calendarManagement.model.EmployeeModel;
+import com.example.calendarThriftServer.model.EmployeeModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

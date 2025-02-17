@@ -1,4 +1,4 @@
-package com.example.calendarManagement.model;
+package com.example.calendarThriftServer.model;
 
 import javax.persistence.*;
 import java.util.List;
