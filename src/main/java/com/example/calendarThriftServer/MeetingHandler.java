@@ -34,42 +34,11 @@ public class MeetingHandler implements IMeetingService.Iface {
     @Override
     public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws TException {
 
-        // check missing input
-        if( meetingDTO.getEmployeeIDs().size()==0 || meetingDTO.getStartTime()==null || meetingDTO.getEndTime()==null ){
-            throw new TException(" Missing employeeIDs or startTime or endTime ");
-        }
-
-        // number of employee if less 6
-        if(meetingDTO.getEmployeeIDs().size()<6){
-            throw new TException("Number of Employee is less than 6");
-        }
 
         // Parse startTime and endTime as LocalDateTime
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime start = LocalDateTime.parse(meetingDTO.getStartTime(), formatter);
         LocalDateTime end = LocalDateTime.parse(meetingDTO.getEndTime(), formatter);
-
-        // Get the LocalTime part from start and end time
-        LocalTime startTime = start.toLocalTime();
-        LocalTime endTime = end.toLocalTime();
-
-        // Check if startTime and endTime are between 10 AM and 6 PM
-        LocalTime tenAM = LocalTime.of(10, 0);
-        LocalTime sixPM = LocalTime.of(18, 0);
-
-        if (startTime.isBefore(tenAM) || startTime.isAfter(sixPM)) {
-            throw new InvalidFieldException("Start time must be between 10 AM and 6 PM.");
-        }
-
-        if (endTime.isBefore(tenAM) || endTime.isAfter(sixPM)) {
-            throw new InvalidFieldException("End time must be between 10 AM and 6 PM.");
-        }
-
-        // Check if the difference between startTime and endTime is at least 30 minutes
-        Duration duration = Duration.between(start, end);
-        if (duration.toMinutes() < 30) {
-            throw new InvalidFieldException("The meeting duration must be at least 30 minutes.");
-        }
 
         // Check if all employees are free during the meeting time
         for (int employeeId : meetingDTO.employeeIDs) {
@@ -91,14 +60,14 @@ public class MeetingHandler implements IMeetingService.Iface {
 
             List<MeetingStatusModel> employeeMeetings = employeeMeetingQuery.getResultList();
             if (!employeeMeetings.isEmpty()) {
-                throw new NotFoundException("Employee with ID " + employeeId + " is already booked during the selected time.");
+                throw new TException("Employee with ID " + employeeId + " is already booked during the selected time.");
             }
         }
 
         // Count employees per office
         Map<Integer, Integer> officeEmployeeCount = new HashMap<>();
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
-            EmployeeModel employee = employeeRepo.findById(employeeId).orElseThrow(() -> new NotFoundException("Employee with ID " + employeeId + " not found."));
+            EmployeeModel employee = employeeRepo.findById(employeeId).orElseThrow(() -> new TException("Employee with ID " + employeeId + " not found."));
             int officeId = employee.getOffice().getOfficeId();
             officeEmployeeCount.put(officeId, officeEmployeeCount.getOrDefault(officeId, 0) + 1);
         }
@@ -131,7 +100,7 @@ public class MeetingHandler implements IMeetingService.Iface {
             }
         }
 
-        throw new NotFoundException("No available meeting room for the selected time.");
+        throw new TException("No available meeting room for the selected time.");
 
     }
 }
