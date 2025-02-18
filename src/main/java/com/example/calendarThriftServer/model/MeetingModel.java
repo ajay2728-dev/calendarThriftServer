@@ -21,8 +21,11 @@ public class MeetingModel {
     @JoinColumn(name = "roomId", nullable = false)
     private MeetingRoomModel meetingRoom;
 
-    @Column( name = "meetingTime",nullable = false)
-    private LocalDateTime meetingTime;
+    @Column( name = "startTime",nullable = false)
+    private LocalDateTime startTime;
+
+    @Column( name = "endTime",nullable = false)
+    private LocalDateTime endTime;
 
     @Column( name = "isValid")
     private Boolean isValid;
@@ -34,11 +37,22 @@ public class MeetingModel {
 
     }
 
-    public MeetingModel(String description, MeetingRoomModel meetingRoom, String agenda, LocalDateTime meetingTime, Boolean isValid) {
+    public MeetingModel( String description, String agenda, MeetingRoomModel meetingRoom, LocalDateTime startTime, LocalDateTime endTime, Boolean isValid) {
         this.description = description;
-        this.meetingRoom = meetingRoom;
         this.agenda = agenda;
-        this.meetingTime = meetingTime;
+        this.meetingRoom = meetingRoom;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.isValid = isValid;
+    }
+
+    public MeetingModel(int meetingId, String description, String agenda, MeetingRoomModel meetingRoom, LocalDateTime startTime, LocalDateTime endTime, Boolean isValid) {
+        this.meetingId = meetingId;
+        this.description = description;
+        this.agenda = agenda;
+        this.meetingRoom = meetingRoom;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.isValid = isValid;
     }
 
@@ -74,12 +88,12 @@ public class MeetingModel {
         this.meetingRoom = meetingRoom;
     }
 
-    public LocalDateTime getMeetingTime() {
-        return meetingTime;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setMeetingTime(LocalDateTime meetingTime) {
-        this.meetingTime = meetingTime;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     public Boolean getValid() {
@@ -88,5 +102,21 @@ public class MeetingModel {
 
     public void setValid(Boolean valid) {
         isValid = valid;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public List<MeetingStatusModel> getStatuses() {
+        return statuses;
+    }
+
+    public void setStatuses(List<MeetingStatusModel> statuses) {
+        this.statuses = statuses;
     }
 }
