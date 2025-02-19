@@ -5,6 +5,7 @@ import com.example.calendarThriftServer.model.*;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
+import com.example.calendarThriftServer.repository.MeetingStatusRepo;
 import com.example.thriftMeeting.IMeetingServiceDTO;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +24,7 @@ import java.util.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
+import java.time.format.DateTimeFormatter;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +51,9 @@ public class MeetingHandlerTest {
     @Mock
     private MeetingRoomRepo meetingRoomRepo;
 
+    @Mock
+    private MeetingStatusRepo meetingStatusRepo;
+
     private IMeetingServiceDTO meetingDTO;
     private IMeetingServiceDTO inValidInputMeetingDTO;
     private EmployeeModel employee1;
@@ -59,6 +63,7 @@ public class MeetingHandlerTest {
     private MeetingModel meetingModel;
     private MeetingModel inputMeetingModel;
     private List<MeetingModel> mockMeetings;
+    List<MeetingRoomModel> mockRooms;
 
 
     @BeforeEach
@@ -106,29 +111,24 @@ public class MeetingHandlerTest {
         meetingDTO.setEndTime("2025-02-18 11:00");
         meetingDTO.setEmployeeIDs(new ArrayList<>(Arrays.asList(1, 2,3)));
 
-        Mockito.when(entityManager.createQuery(Mockito.anyString())).thenReturn(mockQuery);
-        Mockito.when(mockQuery.getResultList()).thenReturn(Collections.emptyList());
+        mockRooms = new ArrayList<>();
+        mockRooms.add(meetingRoom);
     }
 
     @Test
     void test_whenCanSchedule_givenValidInput_ScheduleSuccess() throws TException {
 
-        for(int i : meetingDTO.getEmployeeIDs()){
-            Mockito.when(employeeRepo.findById(i)).thenReturn(Optional.of(new EmployeeModel(i, "Employee " + i, "email" + i + "@xyz.com", office, "Engineering", true, 50000)));
-        }
-
-        Mockito.when(mockQuery.getResultList()).thenReturn(Collections.singletonList(meetingRoom));
-
-        boolean result = meetingHandler.canScheduleMeeting(meetingDTO);
-
-        assertThat(result).isEqualTo(true);
-
+         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+         Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
+         Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
+         boolean result = meetingHandler.canScheduleMeeting(meetingDTO);
+         assertThat(result).isEqualTo(true);
     }
 
     @Test
     void test_whenCanSchedule_givenInvalidInput_ThrowTException(){
 
-        Mockito.when(employeeRepo.findById(3)).thenReturn(Optional.empty());
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.empty());
         TException thrownException = assertThrows(TException.class,()->{
                     meetingHandler.canScheduleMeeting(inValidInputMeetingDTO);
                 }
