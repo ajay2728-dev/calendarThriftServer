@@ -60,11 +60,13 @@ public class MeetingHandlerTest {
     private EmployeeModel employee2;
     private MeetingRoomModel meetingRoom;
     private OfficeModel office;
+    private MeetingModel inputMeeting;
     private MeetingModel meetingModel;
     private MeetingModel inputMeetingModel;
     private List<MeetingModel> mockMeetings;
-    List<MeetingRoomModel> mockRooms;
-    List<MeetingStatusModel> mockMeetingStatus;
+    private List<MeetingRoomModel> mockRooms;
+    private List<MeetingStatusModel> mockMeetingStatus;
+    private MeetingStatusModel meetingStatus;
 
 
     @BeforeEach
@@ -83,6 +85,16 @@ public class MeetingHandlerTest {
         meetingDTO.setStartTime("2025-02-18 10:00");
         meetingDTO.setEndTime("2025-02-18 11:00");
         meetingDTO.setEmployeeIDs(new ArrayList<>(Arrays.asList(1, 2)));
+
+        inputMeeting = new MeetingModel(
+                0,
+                "on boarding meeting",
+                "check update of intern",
+                meetingRoom,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusHours(1),
+                true
+        );
 
         meetingModel = new MeetingModel(
                 1,
@@ -122,7 +134,7 @@ public class MeetingHandlerTest {
         meetingEmployees.add(employee1);
         meetingEmployees.add(employee2);
 
-        MeetingStatusModel meetingStatus = new MeetingStatusModel(1, meetingModel, true, meetingEmployees);
+        meetingStatus = new MeetingStatusModel(1, meetingModel, true, meetingEmployees);
         mockMeetingStatus.add(meetingStatus);
     }
 
@@ -179,27 +191,62 @@ public class MeetingHandlerTest {
     @Test
     void test_whenMeetingSchedule_givenValidInput_scheduleMeetingSuccess() throws TException {
 
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
+        Mockito.when(meetingRoomRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(meetingRoom));
+        Mockito.lenient().when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
+        Mockito.when(meetingStatusRepo.save(Mockito.any(MeetingStatusModel.class))).thenReturn(meetingStatus);
+        Mockito.when(meetingRepo.save(Mockito.any(MeetingModel.class))).thenReturn(meetingModel);
+
+
         meetingDTO.setDescription("on boarding meeting");
-        meetingDTO.setAgenda("check update of intern");
-        meetingDTO.setRoomId(2);
+        meetingDTO.setAgenda("Check update of intern work");
+        IMeetingServiceDTO result = meetingHandler.meetingSchedule(meetingDTO);
+
+        assertThat(result).isNotNull();
+
+    }
+
+    @Test
+    void test_whenMeetingSchedule_givenInvalidInput_ThrowTException(){
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.empty());
+        inValidInputMeetingDTO.setDescription("on boarding meeting");
+        inValidInputMeetingDTO.setAgenda("Check update of intern work");
+        TException thrownException = assertThrows(TException.class,()->{
+                    meetingHandler.meetingSchedule(inValidInputMeetingDTO);
+                }
+        );
+        assertEquals("Employee not found with given employeeId",thrownException.getMessage());
+    }
+
+    @Test
+    void test_whenMeetingSchedule_whenEmployeeIsBusy_ThrowsException() {
 
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
 
-        Mockito.when(entityManager.createQuery(Mockito.anyString())).thenReturn(query);
-        Mockito.when(query.setParameter(Mockito.anyString(), Mockito.any())).thenReturn(query);
-        Mockito.when(query.getResultList()).thenReturn(Collections.emptyList());
+        meetingDTO.setDescription("on boarding meeting");
+        meetingDTO.setAgenda("Check update of intern work");
+        TException thrownException = assertThrows(TException.class, () -> {
+            meetingHandler.meetingSchedule(meetingDTO);
+        });
 
-        Mockito.when(meetingRoomRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(meetingRoom));
+        assertEquals("Employee with ID 1 is already booked during the selected time.",thrownException.getMessage());
+    }
 
-        Mockito.when(entityManager.createQuery(Mockito.anyString())).thenReturn(query);
-        Mockito.when(query.setParameter(Mockito.anyString(), Mockito.any())).thenReturn(query);
-        Mockito.when(query.getResultList()).thenReturn(Collections.singletonList(new MeetingRoomModel()));
+    @Test
+    void test_whenMeetingSchedule_whenNoMeetingRoomAvailable_ThrowsException() {
 
-        Mockito.when(meetingRepo.save(inputMeetingModel)).thenReturn(meetingModel);
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+        Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
 
-        IMeetingServiceDTO response = meetingHandler.meetingSchedule(meetingDTO);
+        meetingDTO.setDescription("on boarding meeting");
+        meetingDTO.setAgenda("Check update of intern work");
+        TException thrownException = assertThrows(TException.class, () -> {
+            meetingHandler.meetingSchedule(meetingDTO);
+        });
 
-        assertThat(response).isNotNull();
+        assertEquals("No available meeting room for the selected time.",thrownException.getMessage());
 
     }
 
