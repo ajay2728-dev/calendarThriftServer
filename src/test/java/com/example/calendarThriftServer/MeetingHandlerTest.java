@@ -64,6 +64,7 @@ public class MeetingHandlerTest {
     private MeetingModel inputMeetingModel;
     private List<MeetingModel> mockMeetings;
     List<MeetingRoomModel> mockRooms;
+    List<MeetingStatusModel> mockMeetingStatus;
 
 
     @BeforeEach
@@ -82,8 +83,6 @@ public class MeetingHandlerTest {
         meetingDTO.setStartTime("2025-02-18 10:00");
         meetingDTO.setEndTime("2025-02-18 11:00");
         meetingDTO.setEmployeeIDs(new ArrayList<>(Arrays.asList(1, 2)));
-
-        mockMeetings = Arrays.asList(meetingModel);
 
         meetingModel = new MeetingModel(
                 1,
@@ -105,14 +104,26 @@ public class MeetingHandlerTest {
                 true
         );
 
+        mockMeetings = new ArrayList<>();
+        mockMeetings.add(meetingModel);
+
 
         inValidInputMeetingDTO = new IMeetingServiceDTO();
-        meetingDTO.setStartTime("2025-02-18 10:00");
-        meetingDTO.setEndTime("2025-02-18 11:00");
-        meetingDTO.setEmployeeIDs(new ArrayList<>(Arrays.asList(1, 2,3)));
+        inValidInputMeetingDTO.setStartTime("2025-02-18 10:00");
+        inValidInputMeetingDTO.setEndTime("2025-02-18 11:00");
+        inValidInputMeetingDTO.setEmployeeIDs(new ArrayList<>(Arrays.asList(1, 2,3)));
 
         mockRooms = new ArrayList<>();
         mockRooms.add(meetingRoom);
+
+        mockMeetingStatus = new ArrayList<>();
+
+        Set<EmployeeModel> meetingEmployees = new HashSet<>();
+        meetingEmployees.add(employee1);
+        meetingEmployees.add(employee2);
+
+        MeetingStatusModel meetingStatus = new MeetingStatusModel(1, meetingModel, true, meetingEmployees);
+        mockMeetingStatus.add(meetingStatus);
     }
 
     @Test
@@ -133,25 +144,27 @@ public class MeetingHandlerTest {
                     meetingHandler.canScheduleMeeting(inValidInputMeetingDTO);
                 }
         );
-        assertEquals("Employee with ID 3 not found",thrownException.getMessage());
+        assertEquals("Employee not found with given employeeId",thrownException.getMessage());
     }
 
     @Test
     void test_whenCanSchedule_whenEmployeeIsBusy_ThrowsException() {
 
-        Mockito.when(mockQuery.getResultList()).thenReturn(Collections.singletonList(new Object()));
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
 
         TException thrownException = assertThrows(TException.class, () -> {
             meetingHandler.canScheduleMeeting(meetingDTO);
         });
 
-        assertEquals("Employee with ID 3 is already booked during the selected time.",thrownException.getMessage());
+        assertEquals("Employee with ID 1 is already booked during the selected time.",thrownException.getMessage());
     }
 
     @Test
     void test_whenCanSchedule_whenNoMeetingRoomAvailable_ThrowsException() {
 
-        Mockito.when(mockQuery.getResultList()).thenReturn(Collections.emptyList());
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
+        Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
 
         TException thrownException = assertThrows(TException.class, () -> {
             meetingHandler.canScheduleMeeting(meetingDTO);

@@ -46,8 +46,8 @@ public class MeetingHandler implements IMeetingService.Iface {
         // Check if all employees are free during the meeting time
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
             Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
-            if (!employeeOpt.isPresent() || employeeOpt.get().getOffice() == null) {
-                throw new TException("Invalid employee or missing office details for ID " + employeeId);
+            if (!employeeOpt.isPresent()) {
+                throw new TException("Employee not found with given employeeId");
             }
 
             List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
