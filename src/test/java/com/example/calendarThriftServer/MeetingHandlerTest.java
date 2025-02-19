@@ -170,16 +170,7 @@ public class MeetingHandlerTest {
         meetingDTO.setAgenda("check update of intern");
         meetingDTO.setRoomId(2);
 
-        for(int employeeID:meetingDTO.getEmployeeIDs() ){
-            Mockito.when(employeeRepo.findById(employeeID)).thenReturn(Optional.of(new EmployeeModel(
-                    employeeID,
-                    "Employee " + employeeID,
-                    "email" + employeeID + "@xyz.com",
-                     office,
-                    "Engineering",
-                    true, 50000)));
-
-        }
+        Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
 
         Mockito.when(entityManager.createQuery(Mockito.anyString())).thenReturn(query);
         Mockito.when(query.setParameter(Mockito.anyString(), Mockito.any())).thenReturn(query);

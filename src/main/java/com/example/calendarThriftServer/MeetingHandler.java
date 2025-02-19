@@ -44,6 +44,7 @@ public class MeetingHandler implements IMeetingService.Iface {
 
 
     @Override
+    @Transactional
     public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws TException {
 
 
@@ -58,18 +59,17 @@ public class MeetingHandler implements IMeetingService.Iface {
             if (!employeeOpt.isPresent() || employeeOpt.get().getOffice() == null) {
                 throw new TException("Invalid employee or missing office details for ID " + employeeId);
             }
-            EmployeeModel employee = employeeOpt.get();
 
-            Query employeeMeetingQuery = entityManager.createQuery(
-                    "SELECT ms FROM MeetingStatusModel ms " +
-                            "WHERE (ms.meeting.startTime BETWEEN :start AND :end OR ms.meeting.endTime BETWEEN :start AND :end) " +
-                            "AND :employee MEMBER OF ms.employees"
-            );
-            employeeMeetingQuery.setParameter("start", start);
-            employeeMeetingQuery.setParameter("end", end);
-            employeeMeetingQuery.setParameter("employee", employee);
-
-            List<MeetingStatusModel> employeeMeetings = employeeMeetingQuery.getResultList();
+//            Query employeeMeetingQuery = entityManager.createQuery(
+//                    "SELECT ms FROM MeetingStatusModel ms " +
+//                            "WHERE (ms.meeting.startTime BETWEEN :start AND :end OR ms.meeting.endTime BETWEEN :start AND :end) " +
+//                            "AND :employee MEMBER OF ms.employees"
+//            );
+//            employeeMeetingQuery.setParameter("start", start);
+//            employeeMeetingQuery.setParameter("end", end);
+//            employeeMeetingQuery.setParameter("employee", employee);
+//
+            List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
             if (!employeeMeetings.isEmpty()) {
                 throw new TException("Employee with ID " + employeeId + " is already booked during the selected time.");
             }
@@ -93,20 +93,20 @@ public class MeetingHandler implements IMeetingService.Iface {
             int officeId = officeEntry.getKey();
 
             // Check for meeting room availability in this office
-            Query roomAvailabilityQuery = entityManager.createQuery(
-                    "SELECT mr FROM MeetingRoomModel mr " +
-                            "WHERE mr.office.officeId = :officeId " +
-                            "AND mr.isEnable = true " +
-                            "AND NOT EXISTS (SELECT m FROM MeetingModel m " +
-                            "WHERE m.meetingRoom.roomId = mr.roomId " +
-                            "AND (:start BETWEEN m.startTime AND m.endTime OR :end BETWEEN m.startTime AND m.endTime " +
-                            "OR m.startTime BETWEEN :start AND :end OR m.endTime BETWEEN :start AND :end))"
-            );
-            roomAvailabilityQuery.setParameter("officeId", officeId);
-            roomAvailabilityQuery.setParameter("start", start);
-            roomAvailabilityQuery.setParameter("end", end);
+//            Query roomAvailabilityQuery = entityManager.createQuery(
+//                    "SELECT mr FROM MeetingRoomModel mr " +
+//                            "WHERE mr.office.officeId = :officeId " +
+//                            "AND mr.isEnable = true " +
+//                            "AND NOT EXISTS (SELECT m FROM MeetingModel m " +
+//                            "WHERE m.meetingRoom.roomId = mr.roomId " +
+//                            "AND (:start BETWEEN m.startTime AND m.endTime OR :end BETWEEN m.startTime AND m.endTime " +
+//                            "OR m.startTime BETWEEN :start AND :end OR m.endTime BETWEEN :start AND :end))"
+//            );
+//            roomAvailabilityQuery.setParameter("officeId", officeId);
+//            roomAvailabilityQuery.setParameter("start", start);
+//            roomAvailabilityQuery.setParameter("end", end);
 
-            List<MeetingRoomModel> availableRooms = roomAvailabilityQuery.getResultList();
+            List<MeetingRoomModel> availableRooms = meetingRoomRepo.findAvailableMeetingRooms(officeId,start,end);
 
             if (!availableRooms.isEmpty()) {
                 return true;
@@ -132,18 +132,18 @@ public class MeetingHandler implements IMeetingService.Iface {
             if (!employeeOpt.isPresent() || employeeOpt.get().getOffice() == null) {
                 throw new TException("Invalid employee or missing office details for ID " + employeeId);
             }
-            EmployeeModel employee = employeeOpt.get();
+//            EmployeeModel employee = employeeOpt.get();
+//
+//            Query employeeMeetingQuery = entityManager.createQuery(
+//                    "SELECT ms FROM MeetingStatusModel ms " +
+//                            "WHERE (ms.meeting.startTime BETWEEN :start AND :end OR ms.meeting.endTime BETWEEN :start AND :end) " +
+//                            "AND :employee MEMBER OF ms.employees"
+//            );
+//            employeeMeetingQuery.setParameter("start", start);
+//            employeeMeetingQuery.setParameter("end", end);
+//            employeeMeetingQuery.setParameter("employee", employee);
 
-            Query employeeMeetingQuery = entityManager.createQuery(
-                    "SELECT ms FROM MeetingStatusModel ms " +
-                            "WHERE (ms.meeting.startTime BETWEEN :start AND :end OR ms.meeting.endTime BETWEEN :start AND :end) " +
-                            "AND :employee MEMBER OF ms.employees"
-            );
-            employeeMeetingQuery.setParameter("start", start);
-            employeeMeetingQuery.setParameter("end", end);
-            employeeMeetingQuery.setParameter("employee", employee);
-
-            List<MeetingStatusModel> employeeMeetings = employeeMeetingQuery.getResultList();
+            List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
             if (!employeeMeetings.isEmpty()) {
                 throw new TException("Employee with ID " + employeeId + " is already booked during the selected time.");
             }
@@ -152,6 +152,9 @@ public class MeetingHandler implements IMeetingService.Iface {
         // check for valid room
         Optional<MeetingRoomModel> validRoomOpt = meetingRoomRepo.findById(meetingDTO.getRoomId());
         if(validRoomOpt.isPresent()){
+
+            // check room is available between start and end time
+
             MeetingRoomModel validRoom = validRoomOpt.get();
             MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),validRoom,start,end,true);
             MeetingModel saveMeeting = meetingRepo.save(newMeeting);
@@ -189,20 +192,20 @@ public class MeetingHandler implements IMeetingService.Iface {
             int officeId = officeEntry.getKey();
 
             // Check for meeting room availability in this office
-            Query roomAvailabilityQuery = entityManager.createQuery(
-                    "SELECT mr FROM MeetingRoomModel mr " +
-                            "WHERE mr.office.officeId = :officeId " +
-                            "AND mr.isEnable = true " +
-                            "AND NOT EXISTS (SELECT m FROM MeetingModel m " +
-                            "WHERE m.meetingRoom.roomId = mr.roomId " +
-                            "AND (:start BETWEEN m.startTime AND m.endTime OR :end BETWEEN m.startTime AND m.endTime " +
-                            "OR m.startTime BETWEEN :start AND :end OR m.endTime BETWEEN :start AND :end))"
-            );
-            roomAvailabilityQuery.setParameter("officeId", officeId);
-            roomAvailabilityQuery.setParameter("start", start);
-            roomAvailabilityQuery.setParameter("end", end);
+//            Query roomAvailabilityQuery = entityManager.createQuery(
+//                    "SELECT mr FROM MeetingRoomModel mr " +
+//                            "WHERE mr.office.officeId = :officeId " +
+//                            "AND mr.isEnable = true " +
+//                            "AND NOT EXISTS (SELECT m FROM MeetingModel m " +
+//                            "WHERE m.meetingRoom.roomId = mr.roomId " +
+//                            "AND (:start BETWEEN m.startTime AND m.endTime OR :end BETWEEN m.startTime AND m.endTime " +
+//                            "OR m.startTime BETWEEN :start AND :end OR m.endTime BETWEEN :start AND :end))"
+//            );
+//            roomAvailabilityQuery.setParameter("officeId", officeId);
+//            roomAvailabilityQuery.setParameter("start", start);
+//            roomAvailabilityQuery.setParameter("end", end);
 
-            List<MeetingRoomModel> availableRooms = roomAvailabilityQuery.getResultList();
+            List<MeetingRoomModel> availableRooms = meetingRoomRepo.findAvailableMeetingRooms(officeId,start,end);
 
             if(!availableRooms.isEmpty()){
                 MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),availableRooms.get(0),start,end,true);
@@ -216,7 +219,7 @@ public class MeetingHandler implements IMeetingService.Iface {
 
                 MeetingStatusModel meetingStatus = new MeetingStatusModel();
                 meetingStatus.setMeeting(saveMeeting);
-                meetingStatus.setStatus(true);
+                meetingStatus.setStatus(false);
                 meetingStatus.setEmployees(employeeSet);
 
                 meetingStatusRepo.save(meetingStatus);
