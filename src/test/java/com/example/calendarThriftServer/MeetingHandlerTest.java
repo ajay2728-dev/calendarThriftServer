@@ -7,6 +7,7 @@ import com.example.calendarThriftServer.repository.MeetingRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
 import com.example.calendarThriftServer.repository.MeetingStatusRepo;
 import com.example.thriftMeeting.IMeetingServiceDTO;
+import com.example.thriftMeeting.IMeetingServiceResponse;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,8 +145,8 @@ public class MeetingHandlerTest {
          Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
          Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
          Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
-         boolean result = meetingHandler.canScheduleMeeting(meetingDTO);
-         assertThat(result).isEqualTo(true);
+         IMeetingServiceResponse result = meetingHandler.canScheduleMeeting(meetingDTO);
+         assertThat(result).isNotNull();
     }
 
     @Test
@@ -201,7 +202,7 @@ public class MeetingHandlerTest {
 
         meetingDTO.setDescription("on boarding meeting");
         meetingDTO.setAgenda("Check update of intern work");
-        IMeetingServiceDTO result = meetingHandler.meetingSchedule(meetingDTO);
+        IMeetingServiceResponse result = meetingHandler.meetingSchedule(meetingDTO);
 
         assertThat(result).isNotNull();
 

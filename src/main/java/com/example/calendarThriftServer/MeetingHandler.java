@@ -36,7 +36,7 @@ public class MeetingHandler implements IMeetingService.Iface {
 
     @Override
     @Transactional
-    public boolean canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws TException {
+    public IMeetingServiceResponse canScheduleMeeting(IMeetingServiceDTO meetingDTO) throws TException {
 
         // Parse startTime and endTime as LocalDateTime
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -47,12 +47,14 @@ public class MeetingHandler implements IMeetingService.Iface {
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
             Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
             if (!employeeOpt.isPresent()) {
-                throw new TException("Employee not found with given employeeId");
+                IMeetingServiceResponse response = new IMeetingServiceResponse(404,"Employee not found with given employeeId: " + employeeId,null);
+                return response;
             }
 
             List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
             if (!employeeMeetings.isEmpty()) {
-                throw new TException("Employee with ID " + employeeId + " is already booked during the selected time.");
+                IMeetingServiceResponse response = new IMeetingServiceResponse(409,"Employee with ID " + employeeId + " is already booked during the selected time.",null);
+                return  response;
             }
         }
 
@@ -74,18 +76,20 @@ public class MeetingHandler implements IMeetingService.Iface {
             List<MeetingRoomModel> availableRooms = meetingRoomRepo.findAvailableMeetingRooms(officeId,start,end);
 
             if (!availableRooms.isEmpty()) {
-                return true;
+                IMeetingServiceResponse response = new IMeetingServiceResponse(200,"Meeting can be Schedule",null);
+                return response;
             }
         }
 
-        throw new TException("No available meeting room for the selected time.");
+        IMeetingServiceResponse response = new IMeetingServiceResponse(409,"No available meeting room for the selected time.",null);
+        return response;
 
     }
 
 
     @Override
     @Transactional
-    public IMeetingServiceDTO meetingSchedule(IMeetingServiceDTO meetingDTO) throws TException {
+    public IMeetingServiceResponse meetingSchedule(IMeetingServiceDTO meetingDTO) throws TException {
 
         // Parse startTime and endTime as LocalDateTime
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -96,12 +100,14 @@ public class MeetingHandler implements IMeetingService.Iface {
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
             Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
             if (!employeeOpt.isPresent()) {
-                throw new TException("Employee not found with given employeeId");
+                IMeetingServiceResponse response = new IMeetingServiceResponse(404,"Employee not found with given employeeId: " + employeeId,null);
+                return response;
             }
 
             List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
             if (!employeeMeetings.isEmpty()) {
-                throw new TException("Employee with ID " + employeeId + " is already booked during the selected time.");
+                IMeetingServiceResponse response = new IMeetingServiceResponse(409,"Employee with ID " + employeeId + " is already booked during the selected time.",null);
+                return  response;
             }
         }
 
@@ -125,10 +131,10 @@ public class MeetingHandler implements IMeetingService.Iface {
             meetingStatus.setMeeting(saveMeeting);
             meetingStatus.setStatus(false);
             meetingStatus.setEmployees(employeeSet);
-
             meetingStatusRepo.save(meetingStatus);
-
-            return new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+            IMeetingServiceDTO body= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+            IMeetingServiceResponse response = new IMeetingServiceResponse(200,"Meeting can be Schedule",body);
+            return response;
         }
 
         // Count employees per office
@@ -163,14 +169,14 @@ public class MeetingHandler implements IMeetingService.Iface {
                 meetingStatus.setMeeting(saveMeeting);
                 meetingStatus.setStatus(false);
                 meetingStatus.setEmployees(employeeSet);
-
                 meetingStatusRepo.save(meetingStatus);
-
-
-                return new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+                IMeetingServiceDTO body= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+                IMeetingServiceResponse response = new IMeetingServiceResponse(200,"Meeting can be Schedule",body);
+                return response;
             }
         }
 
-        throw new TException("No available meeting room for the selected time.");
+        IMeetingServiceResponse response = new IMeetingServiceResponse(409,"No available meeting room for the selected time.",null);
+        return response;
     }
 }
