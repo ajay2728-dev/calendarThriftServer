@@ -145,7 +145,7 @@ public class MeetingHandlerTest {
          Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
          Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
          Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
-         IMeetingServiceResponse result = meetingHandler.canScheduleMeeting(meetingDTO);
+         boolean result = meetingHandler.canScheduleMeeting(meetingDTO);
          assertThat(result).isNotNull();
     }
 
@@ -202,7 +202,7 @@ public class MeetingHandlerTest {
 
         meetingDTO.setDescription("on boarding meeting");
         meetingDTO.setAgenda("Check update of intern work");
-        IMeetingServiceResponse result = meetingHandler.meetingSchedule(meetingDTO);
+        IMeetingServiceDTO result = meetingHandler.meetingSchedule(meetingDTO);
 
         assertThat(result).isNotNull();
 
