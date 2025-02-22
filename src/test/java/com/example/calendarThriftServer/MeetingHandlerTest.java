@@ -5,9 +5,8 @@ import com.example.calendarThriftServer.model.*;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
-import com.example.calendarThriftServer.repository.MeetingStatusRepo;
+import com.example.calendarThriftServer.repository.EmployeeMeetingStatusRepo;
 import com.example.thriftMeeting.IMeetingServiceDTO;
-import com.example.thriftMeeting.IMeetingServiceResponse;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,6 @@ import java.util.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.time.format.DateTimeFormatter;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +51,7 @@ public class MeetingHandlerTest {
     private MeetingRoomRepo meetingRoomRepo;
 
     @Mock
-    private MeetingStatusRepo meetingStatusRepo;
+    private EmployeeMeetingStatusRepo employeeMeetingStatusRepo;
 
     private IMeetingServiceDTO meetingDTO;
     private IMeetingServiceDTO inValidInputMeetingDTO;
@@ -66,8 +64,8 @@ public class MeetingHandlerTest {
     private MeetingModel inputMeetingModel;
     private List<MeetingModel> mockMeetings;
     private List<MeetingRoomModel> mockRooms;
-    private List<MeetingStatusModel> mockMeetingStatus;
-    private MeetingStatusModel meetingStatus;
+    private List<EmployeeMeetingStatusModel> mockMeetingStatus;
+    private EmployeeMeetingStatusModel meetingStatus;
 
 
     @BeforeEach
@@ -135,7 +133,7 @@ public class MeetingHandlerTest {
         meetingEmployees.add(employee1);
         meetingEmployees.add(employee2);
 
-        meetingStatus = new MeetingStatusModel(1, meetingModel, true, meetingEmployees);
+        meetingStatus = new EmployeeMeetingStatusModel(meetingModel, true, employee1);
         mockMeetingStatus.add(meetingStatus);
     }
 
@@ -143,7 +141,7 @@ public class MeetingHandlerTest {
     void test_whenCanSchedule_givenValidInput_ScheduleSuccess() throws TException {
 
          Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-         Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
+         Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
          Mockito.when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
          boolean result = meetingHandler.canScheduleMeeting(meetingDTO);
          assertThat(result).isNotNull();
@@ -164,7 +162,7 @@ public class MeetingHandlerTest {
     void test_whenCanSchedule_whenEmployeeIsBusy_ThrowsException() {
 
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
+        Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
 
         TException thrownException = assertThrows(TException.class, () -> {
             meetingHandler.canScheduleMeeting(meetingDTO);
@@ -193,10 +191,10 @@ public class MeetingHandlerTest {
     void test_whenMeetingSchedule_givenValidInput_scheduleMeetingSuccess() throws TException {
 
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
+        Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(Collections.emptyList());
         Mockito.when(meetingRoomRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(meetingRoom));
         Mockito.lenient().when(meetingRoomRepo.findAvailableMeetingRooms(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockRooms);
-        Mockito.when(meetingStatusRepo.save(Mockito.any(MeetingStatusModel.class))).thenReturn(meetingStatus);
+        Mockito.when(employeeMeetingStatusRepo.save(Mockito.any(EmployeeMeetingStatusModel.class))).thenReturn(meetingStatus);
         Mockito.when(meetingRepo.save(Mockito.any(MeetingModel.class))).thenReturn(meetingModel);
 
 
@@ -224,7 +222,7 @@ public class MeetingHandlerTest {
     void test_whenMeetingSchedule_whenEmployeeIsBusy_ThrowsException() {
 
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
+        Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(),Mockito.any(),Mockito.any())).thenReturn(mockMeetingStatus);
 
         meetingDTO.setDescription("on boarding meeting");
         meetingDTO.setAgenda("Check update of intern work");

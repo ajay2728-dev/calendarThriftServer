@@ -9,12 +9,13 @@ public class OfficeModel {
 
     @Id
     @Column(name = "officeId")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     int officeId;
 
-    @Column(name = "officeName", unique = true)
+    @Column(name = "officeName", unique = true,nullable = false)
     String officeName;
 
-    @Column(name = "officeLocation")
+    @Column(name = "officeLocation",nullable = false)
     String officeLocation;
 
     @OneToMany(mappedBy = "office", cascade = CascadeType.ALL, orphanRemoval = true)

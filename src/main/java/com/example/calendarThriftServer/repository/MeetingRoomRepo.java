@@ -5,10 +5,12 @@ import com.example.calendarThriftServer.model.OfficeModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Repository
 public interface MeetingRoomRepo  extends JpaRepository<MeetingRoomModel,Integer> {
     @Query(value = "SELECT mr.* FROM meeting_room_model mr " +
             "WHERE mr.office_id = :officeId " +

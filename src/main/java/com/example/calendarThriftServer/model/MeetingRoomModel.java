@@ -7,17 +7,18 @@ import java.util.List;
 public class MeetingRoomModel {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "roomId")
     private int roomId;
 
-    @Column(name = "roomName", unique = true)
+    @Column(name = "roomName", unique = true, nullable = false)
     private String roomName;
 
     @ManyToOne
-    @JoinColumn(name = "office_id")
+    @JoinColumn(name = "office_id", nullable = false)
     private OfficeModel office;
 
-    @Column(name = "isEnable")
+    @Column(name = "isEnable", nullable = false)
     private boolean isEnable;
 
     @OneToMany(mappedBy = "meetingRoom", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -29,6 +30,12 @@ public class MeetingRoomModel {
 
     public MeetingRoomModel(int roomId, String roomName, OfficeModel office, boolean isEnable) {
         this.roomId = roomId;
+        this.roomName = roomName;
+        this.office = office;
+        this.isEnable = isEnable;
+    }
+
+    public MeetingRoomModel(String roomName, OfficeModel office, boolean isEnable) {
         this.roomName = roomName;
         this.office = office;
         this.isEnable = isEnable;
@@ -58,7 +65,7 @@ public class MeetingRoomModel {
         this.office = office;
     }
 
-    public boolean getiIsEnable() {
+    public boolean getIsEnable() {
         return isEnable;
     }
 
@@ -66,3 +73,4 @@ public class MeetingRoomModel {
         isEnable = enable;
     }
 }
+

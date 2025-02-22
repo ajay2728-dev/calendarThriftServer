@@ -2,18 +2,16 @@ package com.example.calendarThriftServer.validator;
 
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.model.MeetingRoomModel;
-import com.example.calendarThriftServer.model.MeetingStatusModel;
+import com.example.calendarThriftServer.model.EmployeeMeetingStatusModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
-import com.example.calendarThriftServer.repository.MeetingStatusRepo;
+import com.example.calendarThriftServer.repository.EmployeeMeetingStatusRepo;
 import com.example.thriftMeeting.IMeetingServiceDTO;
-import com.example.thriftMeeting.IMeetingServiceResponse;
 import com.example.thriftMeeting.MeetingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Component
@@ -23,7 +21,7 @@ public class MeetingHandlerValidator {
     private EmployeeRepo employeeRepo;
 
     @Autowired
-    private MeetingStatusRepo meetingStatusRepo;
+    private EmployeeMeetingStatusRepo employeeMeetingStatusRepo;
 
     @Autowired
     private MeetingRoomRepo meetingRoomRepo;
@@ -37,7 +35,7 @@ public class MeetingHandlerValidator {
                 throw new MeetingException("Employee not found with given employeeId: " + employeeId, 404);
             }
 
-            List<MeetingStatusModel> employeeMeetings = meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
+            List<EmployeeMeetingStatusModel> employeeMeetings = employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(employeeId,start,end);
             if (!employeeMeetings.isEmpty()) {
                 throw new MeetingException("Employee with ID " + employeeId + " is already booked during the selected time.", 409);
             }
@@ -69,6 +67,5 @@ public class MeetingHandlerValidator {
         }
         return null;
     }
-
 
 }

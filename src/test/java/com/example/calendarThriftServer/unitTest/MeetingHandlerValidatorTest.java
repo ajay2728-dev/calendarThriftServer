@@ -2,11 +2,11 @@ package com.example.calendarThriftServer.unitTest;
 
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.model.MeetingRoomModel;
-import com.example.calendarThriftServer.model.MeetingStatusModel;
+import com.example.calendarThriftServer.model.EmployeeMeetingStatusModel;
 import com.example.calendarThriftServer.model.OfficeModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
-import com.example.calendarThriftServer.repository.MeetingStatusRepo;
+import com.example.calendarThriftServer.repository.EmployeeMeetingStatusRepo;
 import com.example.calendarThriftServer.validator.MeetingHandlerValidator;
 import com.example.thriftMeeting.IMeetingServiceDTO;
 import com.example.thriftMeeting.MeetingException;
@@ -29,7 +29,7 @@ public class MeetingHandlerValidatorTest {
     private EmployeeRepo employeeRepo;
 
     @Mock
-    private MeetingStatusRepo meetingStatusRepo;
+    private EmployeeMeetingStatusRepo employeeMeetingStatusRepo;
 
     @Mock
     private MeetingRoomRepo meetingRoomRepo;
@@ -63,7 +63,7 @@ public class MeetingHandlerValidatorTest {
     @Test
     void test_CheckEmployeeMeetingConflict_NoConflict(){
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(Collections.emptyList());
+        Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(Collections.emptyList());
         assertDoesNotThrow(() -> meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO, start, end));
     }
 
@@ -79,8 +79,8 @@ public class MeetingHandlerValidatorTest {
     @Test
     void test_CheckEmployeeMeetingConflict_EmployeeHasConflict(){
         Mockito.when(employeeRepo.findById(Mockito.anyInt())).thenReturn(Optional.of(employee1));
-        List<MeetingStatusModel> conflictingMeetings = Arrays.asList(new MeetingStatusModel());
-        Mockito.when(meetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(conflictingMeetings);
+        List<EmployeeMeetingStatusModel> conflictingMeetings = Arrays.asList(new EmployeeMeetingStatusModel());
+        Mockito.when(employeeMeetingStatusRepo.findMeetingsByEmployeeAndTimeRange(Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(conflictingMeetings);
         MeetingException exception = assertThrows(MeetingException.class, () ->
                 meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO, start, end));
 

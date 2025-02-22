@@ -3,13 +3,14 @@ package com.example.calendarThriftServer;
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.model.MeetingModel;
 import com.example.calendarThriftServer.model.MeetingRoomModel;
-import com.example.calendarThriftServer.model.MeetingStatusModel;
+import com.example.calendarThriftServer.model.EmployeeMeetingStatusModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
-import com.example.calendarThriftServer.repository.MeetingStatusRepo;
+import com.example.calendarThriftServer.repository.EmployeeMeetingStatusRepo;
 import com.example.calendarThriftServer.validator.MeetingHandlerValidator;
 import com.example.thriftMeeting.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
+@Slf4j
 @Service
 public class MeetingHandler implements IMeetingService.Iface {
 
@@ -32,7 +34,7 @@ public class MeetingHandler implements IMeetingService.Iface {
     private MeetingRoomRepo meetingRoomRepo;
 
     @Autowired
-    private MeetingStatusRepo meetingStatusRepo;
+    private EmployeeMeetingStatusRepo employeeMeetingStatusRepo;
 
     @Autowired
     private MeetingHandlerValidator meetingHandlerValidator;
@@ -48,7 +50,9 @@ public class MeetingHandler implements IMeetingService.Iface {
         LocalDateTime end = LocalDateTime.parse(meetingDTO.getEndTime(), formatter);
 
         // checking employee timing conflict
+        log.info("checking employee timing conflict ...");
         meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end);
+        log.info("checked employee timing conflict ...");
 
         // checking available room
         MeetingRoomModel roomAvailable = meetingHandlerValidator.checkAvailableRoom(meetingDTO,start,end);
@@ -78,23 +82,24 @@ public class MeetingHandler implements IMeetingService.Iface {
         Optional<MeetingRoomModel> givenRoomOpt = meetingRoomRepo.findById(meetingDTO.getRoomId());
 
         if(givenRoomOpt.isPresent()){
+
             // check room is available between start and end time
             MeetingRoomModel validRoom = givenRoomOpt.get();
             MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),validRoom,start,end,true);
             MeetingModel saveMeeting = meetingRepo.save(newMeeting);
 
-            Set<EmployeeModel> employeeSet = new HashSet<>();
             for (int employeeId : meetingDTO.getEmployeeIDs()) {
+
                 Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
-                employeeOpt.ifPresent(employeeSet::add);
+                EmployeeMeetingStatusModel meetingStatus = new EmployeeMeetingStatusModel();
+                meetingStatus.setMeeting(saveMeeting);
+                meetingStatus.setMeetingStatus(false);
+                meetingStatus.setEmployee(employeeOpt.get());
+                employeeMeetingStatusRepo.save(meetingStatus);
+
             }
 
-            MeetingStatusModel meetingStatus = new MeetingStatusModel();
-            meetingStatus.setMeeting(saveMeeting);
-            meetingStatus.setStatus(false);
-            meetingStatus.setEmployees(employeeSet);
-            meetingStatusRepo.save(meetingStatus);
-            IMeetingServiceDTO responseBody= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+            IMeetingServiceDTO responseBody = new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
             return responseBody;
         }
 
@@ -108,17 +113,17 @@ public class MeetingHandler implements IMeetingService.Iface {
         MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),roomAvailable,start,end,true);
         MeetingModel saveMeeting = meetingRepo.save(newMeeting);
 
-        Set<EmployeeModel> employeeSet = new HashSet<>();
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
+
             Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
-            employeeOpt.ifPresent(employeeSet::add);
+            EmployeeMeetingStatusModel meetingStatus = new EmployeeMeetingStatusModel();
+            meetingStatus.setMeeting(saveMeeting);
+            meetingStatus.setMeetingStatus(false);
+            meetingStatus.setEmployee(employeeOpt.get());
+            employeeMeetingStatusRepo.save(meetingStatus);
+
         }
 
-        MeetingStatusModel meetingStatus = new MeetingStatusModel();
-        meetingStatus.setMeeting(saveMeeting);
-        meetingStatus.setStatus(false);
-        meetingStatus.setEmployees(employeeSet);
-        meetingStatusRepo.save(meetingStatus);
         IMeetingServiceDTO responseBody= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
         return responseBody;
 
