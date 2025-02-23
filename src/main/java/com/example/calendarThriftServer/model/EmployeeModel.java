@@ -52,6 +52,10 @@ public class EmployeeModel {
         this.salary = salary;
     }
 
+    public EmployeeModel(){
+
+    }
+
     public int getEmployeeId() {
         return employeeId;
     }

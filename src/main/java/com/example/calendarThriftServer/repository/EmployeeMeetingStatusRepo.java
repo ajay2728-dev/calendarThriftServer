@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface EmployeeMeetingStatusRepo extends JpaRepository<EmployeeMeetingStatusModel,Integer> {
-    @Query("SELECT ms.meeting FROM EmployeeMeetingStatusModel ms " +
+    @Query("SELECT ms FROM EmployeeMeetingStatusModel ms " +
             "WHERE ms.employee.employeeId = :employeeId " +
             "AND (:start BETWEEN ms.meeting.startTime AND ms.meeting.endTime " +
             " OR :end BETWEEN ms.meeting.startTime AND ms.meeting.endTime " +

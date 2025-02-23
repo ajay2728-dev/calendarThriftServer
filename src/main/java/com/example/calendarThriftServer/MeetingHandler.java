@@ -55,7 +55,9 @@ public class MeetingHandler implements IMeetingService.Iface {
         log.info("checked employee timing conflict ...");
 
         // checking available room
+        log.info("checking for available room ...");
         MeetingRoomModel roomAvailable = meetingHandlerValidator.checkAvailableRoom(meetingDTO,start,end);
+        log.info("checked for available room ...");
 
         if(roomAvailable==null){
             throw new MeetingException("No available meeting room for the selected time.",409);
@@ -76,7 +78,9 @@ public class MeetingHandler implements IMeetingService.Iface {
         LocalDateTime end = LocalDateTime.parse(meetingDTO.getEndTime(), formatter);
 
         // checking employee timing conflict
+        log.info("checking employee timing conflict ...");
         meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end);
+        log.info("checked employee timing conflict ...");
 
         // check for valid room
         Optional<MeetingRoomModel> givenRoomOpt = meetingRoomRepo.findById(meetingDTO.getRoomId());
@@ -105,12 +109,16 @@ public class MeetingHandler implements IMeetingService.Iface {
 
 
         // checking available room
+        log.info("checking for available room ...");
         MeetingRoomModel roomAvailable = meetingHandlerValidator.checkAvailableRoom(meetingDTO,start,end);
+        log.info("checked for available room ...");
+
         if(roomAvailable==null){
             throw new MeetingException("No available meeting room for the selected time.",409);
         }
 
         MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),roomAvailable,start,end,true);
+
         MeetingModel saveMeeting = meetingRepo.save(newMeeting);
 
         for (int employeeId : meetingDTO.getEmployeeIDs()) {
@@ -120,7 +128,11 @@ public class MeetingHandler implements IMeetingService.Iface {
             meetingStatus.setMeeting(saveMeeting);
             meetingStatus.setMeetingStatus(false);
             meetingStatus.setEmployee(employeeOpt.get());
-            employeeMeetingStatusRepo.save(meetingStatus);
+            try {
+                employeeMeetingStatusRepo.save(meetingStatus);
+            } catch (RuntimeException ex){
+                throw new RuntimeException("Error occur while saving the employee meeting status..");
+            }
 
         }
 

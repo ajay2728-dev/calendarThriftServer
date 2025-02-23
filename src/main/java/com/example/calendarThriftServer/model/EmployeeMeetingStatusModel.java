@@ -6,11 +6,12 @@ import java.util.Set;
 @Entity
 public class EmployeeMeetingStatusModel {
 
-    @EmbeddedId
-    private EmployeeMeetingStatusId id;
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
     @ManyToOne
-    @MapsId("meetingId")
     @JoinColumn(name = "meetingId", nullable = false)
     private MeetingModel meeting;
 
@@ -18,13 +19,11 @@ public class EmployeeMeetingStatusModel {
     private Boolean meetingStatus;
 
     @ManyToOne
-    @MapsId("employeeId")
     @JoinColumn(name = "employeeId", nullable = false)
     private EmployeeModel employee;
 
 
     public EmployeeMeetingStatusModel(MeetingModel meeting, Boolean meetingStatus, EmployeeModel employee) {
-        this.id = new EmployeeMeetingStatusId(meeting.getMeetingId(), employee.getEmployeeId());
         this.meeting = meeting;
         this.meetingStatus = meetingStatus;
         this.employee = employee;
@@ -32,14 +31,6 @@ public class EmployeeMeetingStatusModel {
 
     public EmployeeMeetingStatusModel(){
 
-    }
-
-    public EmployeeMeetingStatusId getId() {
-        return id;
-    }
-
-    public void setId(EmployeeMeetingStatusId id) {
-        this.id = id;
     }
 
     public MeetingModel getMeeting() {
@@ -64,5 +55,13 @@ public class EmployeeMeetingStatusModel {
 
     public void setEmployee(EmployeeModel employee) {
         this.employee = employee;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
