@@ -17,7 +17,7 @@ public interface MeetingRoomRepo  extends JpaRepository<MeetingRoomModel,Integer
             "AND mr.is_enable = true " +
             "AND NOT EXISTS ( " +
             "    SELECT 1 FROM meeting_model m " +
-            "    WHERE m.room_id = mr.room_id " +
+            "    WHERE m.room_id = mr.room_id" +
             "    AND (:start BETWEEN m.start_time AND m.end_time " +
             "    OR :end BETWEEN m.start_time AND m.end_time " +
             "    OR m.start_time BETWEEN :start AND :end " +

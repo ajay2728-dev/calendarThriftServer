@@ -15,8 +15,8 @@ public interface EmployeeMeetingStatusRepo extends JpaRepository<EmployeeMeeting
             "WHERE ms.employee.employeeId = :employeeId " +
             "AND (:start BETWEEN ms.meeting.startTime AND ms.meeting.endTime " +
             " OR :end BETWEEN ms.meeting.startTime AND ms.meeting.endTime " +
-            " OR ms.meeting.startTime BETWEEN :start AND :end " +
-            " OR ms.meeting.endTime BETWEEN :start AND :end) "+
+            " OR ms.meeting.startTime BETWEEN :start AND :end) " +
+//            " OR ms.meeting.endTime BETWEEN :start AND :end) "+
             "AND ms.meetingStatus = true")
     List<EmployeeMeetingStatusModel> findMeetingsByEmployeeAndTimeRange(
             @Param("employeeId") int employeeId,
