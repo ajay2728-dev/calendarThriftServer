@@ -96,17 +96,24 @@ public class MeetingHandler implements IMeetingService.Iface {
         // check for valid room
         Optional<MeetingRoomModel> givenRoomOpt = meetingRoomRepo.findById(meetingDTO.getRoomId());
 
-        Optional<MeetingRoomModel> validRoomOpt ;
+        if( roomsAvailable.isEmpty() ){
+            throw new MeetingException("No available meeting room for the selected time.",400);
+        }
+
+        List<Integer> roomsAvailableId = roomsAvailable.stream().map(room-> room.getRoomId() ).
+                collect(Collectors.toList());
+
+        if( !roomsAvailable.contains(givenRoomOpt.get())){
+            throw new MeetingException("Given room is not available but this are the available rooms "+roomsAvailableId,400);
+        }
+
+        Optional<MeetingRoomModel> validRoomOpt;
 
         validRoomOpt = (givenRoomOpt.isPresent() && roomsAvailable.contains(givenRoomOpt.get()))
                 ? givenRoomOpt
                 : (roomsAvailable.isEmpty()
                 ? Optional.empty()
                 : Optional.of(roomsAvailable.get(0)));
-
-        if(!validRoomOpt.isPresent()){
-            throw new MeetingException("No available meeting room for the selected time.",409);
-        }
 
         MeetingRoomModel validRoom = validRoomOpt.get();
         MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),validRoom,start,end,true);
@@ -116,7 +123,7 @@ public class MeetingHandler implements IMeetingService.Iface {
                 .map(employee -> {
                     EmployeeMeetingStatusModel meetingStatus = new EmployeeMeetingStatusModel();
                     meetingStatus.setMeeting(saveMeeting);
-                    meetingStatus.setMeetingStatus(false);
+                    meetingStatus.setMeetingStatus(true);
                     meetingStatus.setEmployee(employee);
                     return meetingStatus;
                 })
