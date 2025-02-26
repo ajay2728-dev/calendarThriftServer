@@ -103,7 +103,7 @@ public class MeetingHandler implements IMeetingService.Iface {
         List<Integer> roomsAvailableId = roomsAvailable.stream().map(room-> room.getRoomId() ).
                 collect(Collectors.toList());
 
-        if( !roomsAvailable.contains(givenRoomOpt.get())){
+        if( givenRoomOpt.isPresent() && !roomsAvailable.contains(givenRoomOpt.get()) ){
             throw new MeetingException("Given room is not available but this are the available rooms "+roomsAvailableId,400);
         }
 
