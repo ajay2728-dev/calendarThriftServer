@@ -1,17 +1,8 @@
 package com.example.calendarThriftServer.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
 public class EmployeeModel {
 
@@ -20,27 +11,27 @@ public class EmployeeModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int employeeId;
 
-    @Column(name = "employeeName")
+    @Column(name = "employeeName",nullable = false)
     private String employeeName;
 
-    @Column(name = "employeeEmail")
+    @Column(name = "employeeEmail", unique = true,nullable = false)
     private String employeeEmail;
 
     @ManyToOne
     @JoinColumn(name = "officeId", nullable = false)
     private OfficeModel office;
 
-    @Column(name = "department")
+    @Column(name = "department",nullable = false)
     private String department;
 
-    @Column(name = "salary")
+    @Column(name = "salary",nullable = false)
     private int salary;
 
-    @Column(name = "isActive")
+    @Column(name = "isActive",nullable = false)
     Boolean isActive;
 
-    @ManyToMany(mappedBy = "employees")
-    private Set<MeetingStatusModel> meetingStatuses;
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmployeeMeetingStatusModel> meetingStatuses;
 
     public EmployeeModel(int employeeId,String employeeName, String employeeEmail, OfficeModel office, String department, Boolean isActive, int salary) {
         this.employeeId=employeeId;
@@ -59,6 +50,10 @@ public class EmployeeModel {
         this.department = department;
         this.isActive = isActive;
         this.salary = salary;
+    }
+
+    public EmployeeModel(){
+
     }
 
     public int getEmployeeId() {
@@ -117,11 +112,4 @@ public class EmployeeModel {
         isActive = active;
     }
 
-    public Set<MeetingStatusModel> getMeetingStatuses() {
-        return meetingStatuses;
-    }
-
-    public void setMeetingStatuses(Set<MeetingStatusModel> meetingStatuses) {
-        this.meetingStatuses = meetingStatuses;
-    }
 }

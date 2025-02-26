@@ -3,13 +3,14 @@ package com.example.calendarThriftServer;
 import com.example.calendarThriftServer.model.EmployeeModel;
 import com.example.calendarThriftServer.model.MeetingModel;
 import com.example.calendarThriftServer.model.MeetingRoomModel;
-import com.example.calendarThriftServer.model.MeetingStatusModel;
+import com.example.calendarThriftServer.model.EmployeeMeetingStatusModel;
 import com.example.calendarThriftServer.repository.EmployeeRepo;
 import com.example.calendarThriftServer.repository.MeetingRepo;
 import com.example.calendarThriftServer.repository.MeetingRoomRepo;
-import com.example.calendarThriftServer.repository.MeetingStatusRepo;
+import com.example.calendarThriftServer.repository.EmployeeMeetingStatusRepo;
 import com.example.calendarThriftServer.validator.MeetingHandlerValidator;
 import com.example.thriftMeeting.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,10 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
+@Slf4j
 @Service
 public class MeetingHandler implements IMeetingService.Iface {
 
@@ -32,7 +35,7 @@ public class MeetingHandler implements IMeetingService.Iface {
     private MeetingRoomRepo meetingRoomRepo;
 
     @Autowired
-    private MeetingStatusRepo meetingStatusRepo;
+    private EmployeeMeetingStatusRepo employeeMeetingStatusRepo;
 
     @Autowired
     private MeetingHandlerValidator meetingHandlerValidator;
@@ -47,13 +50,19 @@ public class MeetingHandler implements IMeetingService.Iface {
         LocalDateTime start = LocalDateTime.parse(meetingDTO.getStartTime(), formatter);
         LocalDateTime end = LocalDateTime.parse(meetingDTO.getEndTime(), formatter);
 
+        List<EmployeeModel> existingEmployees = new ArrayList<>();
+
         // checking employee timing conflict
-        meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end);
+        log.info("checking employee timing conflict ...");
+        meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end, existingEmployees);
+        log.info("checked employee timing conflict ...");
 
         // checking available room
-        MeetingRoomModel roomAvailable = meetingHandlerValidator.checkAvailableRoom(meetingDTO,start,end);
+        log.info("checking for available room ...");
+        List<MeetingRoomModel> roomsAvailable = meetingHandlerValidator.checkAvailableRoom(start, end, existingEmployees);
+        log.info("checked for available room ...");
 
-        if(roomAvailable==null){
+        if(roomsAvailable.isEmpty()){
             throw new MeetingException("No available meeting room for the selected time.",409);
         }
 
@@ -71,56 +80,60 @@ public class MeetingHandler implements IMeetingService.Iface {
         LocalDateTime start = LocalDateTime.parse(meetingDTO.getStartTime(), formatter);
         LocalDateTime end = LocalDateTime.parse(meetingDTO.getEndTime(), formatter);
 
+        List<EmployeeModel> existingEmployees = new ArrayList<>();
+
         // checking employee timing conflict
-        meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end);
+        log.info("checking employee timing conflict ...");
+        meetingHandlerValidator.checkEmployeeMeetingConflict(meetingDTO,start,end,existingEmployees);
+        log.info("checked employee timing conflict ...");
+
+
+        // checking available room
+        log.info("checking for available room ...");
+        List<MeetingRoomModel> roomsAvailable = meetingHandlerValidator.checkAvailableRoom(start, end, existingEmployees);
+        log.info("checked for available room ...");
 
         // check for valid room
         Optional<MeetingRoomModel> givenRoomOpt = meetingRoomRepo.findById(meetingDTO.getRoomId());
 
-        if(givenRoomOpt.isPresent()){
-            // check room is available between start and end time
-            MeetingRoomModel validRoom = givenRoomOpt.get();
-            MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),validRoom,start,end,true);
-            MeetingModel saveMeeting = meetingRepo.save(newMeeting);
-
-            Set<EmployeeModel> employeeSet = new HashSet<>();
-            for (int employeeId : meetingDTO.getEmployeeIDs()) {
-                Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
-                employeeOpt.ifPresent(employeeSet::add);
-            }
-
-            MeetingStatusModel meetingStatus = new MeetingStatusModel();
-            meetingStatus.setMeeting(saveMeeting);
-            meetingStatus.setStatus(false);
-            meetingStatus.setEmployees(employeeSet);
-            meetingStatusRepo.save(meetingStatus);
-            IMeetingServiceDTO responseBody= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
-            return responseBody;
+        if( roomsAvailable.isEmpty() ){
+            throw new MeetingException("No available meeting room for the selected time.",400);
         }
 
+        List<Integer> roomsAvailableId = roomsAvailable.stream().map(room-> room.getRoomId() ).
+                collect(Collectors.toList());
 
-        // checking available room
-        MeetingRoomModel roomAvailable = meetingHandlerValidator.checkAvailableRoom(meetingDTO,start,end);
-        if(roomAvailable==null){
-            throw new MeetingException("No available meeting room for the selected time.",409);
+        if( givenRoomOpt.isPresent() && !roomsAvailable.contains(givenRoomOpt.get()) ){
+            throw new MeetingException("Given room is not available but this are the available rooms "+roomsAvailableId,400);
         }
 
-        MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),roomAvailable,start,end,true);
+        Optional<MeetingRoomModel> validRoomOpt;
+
+        validRoomOpt = (givenRoomOpt.isPresent() && roomsAvailable.contains(givenRoomOpt.get()))
+                ? givenRoomOpt
+                : (roomsAvailable.isEmpty()
+                ? Optional.empty()
+                : Optional.of(roomsAvailable.get(0)));
+
+        MeetingRoomModel validRoom = validRoomOpt.get();
+        MeetingModel newMeeting = new MeetingModel(meetingDTO.getDescription(),meetingDTO.getAgenda(),validRoom,start,end,true);
         MeetingModel saveMeeting = meetingRepo.save(newMeeting);
 
-        Set<EmployeeModel> employeeSet = new HashSet<>();
-        for (int employeeId : meetingDTO.getEmployeeIDs()) {
-            Optional<EmployeeModel> employeeOpt = employeeRepo.findById(employeeId);
-            employeeOpt.ifPresent(employeeSet::add);
-        }
+        List<EmployeeMeetingStatusModel> meetingStatuses = existingEmployees.stream()
+                .map(employee -> {
+                    EmployeeMeetingStatusModel meetingStatus = new EmployeeMeetingStatusModel();
+                    meetingStatus.setMeeting(saveMeeting);
+                    meetingStatus.setMeetingStatus(true);
+                    meetingStatus.setEmployee(employee);
+                    return meetingStatus;
+                })
+                .collect(Collectors.toList());
 
-        MeetingStatusModel meetingStatus = new MeetingStatusModel();
-        meetingStatus.setMeeting(saveMeeting);
-        meetingStatus.setStatus(false);
-        meetingStatus.setEmployees(employeeSet);
-        meetingStatusRepo.save(meetingStatus);
-        IMeetingServiceDTO responseBody= new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
+        employeeMeetingStatusRepo.saveAll(meetingStatuses);
+
+        IMeetingServiceDTO responseBody = new IMeetingServiceDTO(saveMeeting.getMeetingId(),saveMeeting.getDescription(),saveMeeting.getAgenda(),meetingDTO.getEmployeeIDs(),meetingDTO.getStartTime(),meetingDTO.getEndTime(),saveMeeting.getMeetingRoom().getRoomId());
         return responseBody;
 
     }
+
 }

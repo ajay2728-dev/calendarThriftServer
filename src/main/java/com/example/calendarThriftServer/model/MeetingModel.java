@@ -27,11 +27,11 @@ public class MeetingModel {
     @Column( name = "endTime",nullable = false)
     private LocalDateTime endTime;
 
-    @Column( name = "isValid")
+    @Column( name = "isValid", nullable = false)
     private Boolean isValid;
 
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL)
-    private List<MeetingStatusModel> statuses;
+    private List<EmployeeMeetingStatusModel> statuses;
 
     public MeetingModel(){
 
@@ -112,11 +112,11 @@ public class MeetingModel {
         this.endTime = endTime;
     }
 
-    public List<MeetingStatusModel> getStatuses() {
+    public List<EmployeeMeetingStatusModel> getStatuses() {
         return statuses;
     }
 
-    public void setStatuses(List<MeetingStatusModel> statuses) {
+    public void setStatuses(List<EmployeeMeetingStatusModel> statuses) {
         this.statuses = statuses;
     }
 }
